@@ -7,6 +7,7 @@
             Console.WriteLine("Hello World!");
             Console.WriteLine("Salut");
             Console.ReadKey();
+            int a = 3;
         }
     }
 }
