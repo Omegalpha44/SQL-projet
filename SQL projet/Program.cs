@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
-using MySqlX.XDevAPI.CRUD;
-using Org.BouncyCastle.Tls;
-using System;
-
-namespace Prog
+﻿
+namespace SQL_projet
 {
     class Prog
     {
         static void Main(string[] args)
         {
-            
+            string login = ""; //login pour se connecter à la database
+            // Sql_fetcher fetcher = new Sql_fetcher(login);
+            AffichageGraphique affichage = new AffichageGraphique();
+            affichage.Affichage();
         }
     }
 }
