@@ -1,14 +1,20 @@
-﻿namespace Prog
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
+using MySqlX.XDevAPI.CRUD;
+using Org.BouncyCastle.Tls;
+using System;
+
+namespace Prog
 {
     class Prog
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            Console.WriteLine("Salut");
-            Console.ReadKey();
-            int a = 3;
-            Console.WriteLine("ceci est un test");
+            
         }
     }
 }
