@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using MySqlX.XDevAPI;
 using Org.BouncyCastle.Tls;
 using System;
 using System.Collections;
@@ -48,10 +49,10 @@ namespace SQL_projet
                 return GoodValue(a, b);
             }
         }
-        public void Menu()
+        public static void Menu()
         {
             Console.Clear();
-            Console.WriteLine("Bienvenu chez Belle Fleure");
+            Console.WriteLine("Bienvenue chez Belle Fleure");
             Console.WriteLine("Que voulez vous faire ?");
             Console.WriteLine("1. Module Client");
             Console.WriteLine("2. Module Produit");
@@ -100,29 +101,29 @@ namespace SQL_projet
                 Console.WriteLine("2. Voir mon statut de fidélité");
                 Console.WriteLine("3. Voir le catalogue du magasin");
                 Console.WriteLine("4. Passer commande");
-                Console.WriteLine("5. Quiter");
-                int r = GoodValue(1, 5);
+                Console.WriteLine("5. Voir mes commandes passées");
+                Console.WriteLine("6. Quiter");
+                int r = GoodValue(1, 6);
                 string statut = StatutClient(courriel);
                 switch (r)
                 {
-                    case 1: break;
+                    case 1: ModificationsDonnées(courriel); break;
                     case 2:
                         if (statut == " ") { Console.WriteLine("Vous n'avez pas de statut de fidélité actuellement"); }
                         else { Console.WriteLine("Votre statut de fidélité est " + statut); }
                         Console.ReadLine();
                         break;
-                    case 3: break;
+                    case 3: ProduitsMagasin(); break;
                     case 4: ChoixProduits(); break;
-                    case 5:quit = true; break;
+                    case 5: AffichageCommandesPassées(courriel); break;
+                    case 6:quit = true; break;
                 }
             }
             
         }
-        void ModuleClient()
+        static void ModuleClient()
         {
             Console.Clear();
-            Console.WriteLine("Lorem Ipsum");
-            Console.WriteLine("Bienvenu chez Belle Fleure");
             Console.WriteLine("Que voulez vous faire ?");
             Console.WriteLine("1. Login");
             Console.WriteLine("2. Sign up");
@@ -132,19 +133,19 @@ namespace SQL_projet
             {
                 case 1: ConnectionClient(); break;
                 case 2: AjouterClient(); break;
-                case 3: break;
+                case 3: AffichageClients(); break;
             }
             Console.ReadLine();
             Menu();
         }
-        void ModuleProduit()
+        static void ModuleProduit()
         {
             Console.Clear();
             Console.WriteLine("Lorem Ipsum");
             Console.ReadLine();
             Menu();
         }
-        void ModuleCommande()
+        static void ModuleCommande()
         {
             Console.Clear();
             Console.WriteLine("Lorem Ipsum");
@@ -152,7 +153,7 @@ namespace SQL_projet
             Menu();
 
         }
-        void ModuleStat()
+        static void ModuleStat()
         {
             Console.Clear();
             Console.WriteLine("Lorem Ipsum");
@@ -195,17 +196,17 @@ namespace SQL_projet
                 {
                     Console.WriteLine("Téléphone : ");
                     int telephone = Convert.ToInt32(Console.ReadLine());
-                    Console.WriteLine(telephone);
                     Console.WriteLine("Carte de crédit");
                     string cb = Console.ReadLine();
                     MySqlConnection connection = new MySqlConnection(connectionString);
                     connection.Open();
                     MySqlCommand command = connection.CreateCommand();
-                    command.CommandText = "INSERT INTO `Fleurs`.`client` (`nom`, `prenom`,`telephone`,`courriel`, `motDePasse`, `facturationAdresse`,`creditCard`) VALUES ('" + nom + "', '" + prenom + "','" +telephone+ "' ,'" + courriel + "','" + mdp + "', '" + adresse + "',    '" + cb + "');";
+                    command.CommandText = "INSERT INTO `Fleurs`.`client` (`idclient`,`nom`, `prenom`,`telephone`,`courriel`, `motDePasse`, `facturationAdresse`,`creditCard`) VALUES (9,'" + nom + "', '" + prenom + "','" +telephone+ "' ,'" + courriel + "','" + mdp + "', '" + adresse + "',    '" + cb + "');";
 
                     MySqlDataReader reader;
                     reader = command.ExecuteReader();
                     connection.Close();
+                    ConnectionClient();
                     
                 }
                 else
@@ -257,11 +258,9 @@ namespace SQL_projet
                 }
 
             }
-            
-
         }
         
-        static string StatutClient(string courriel) 
+        static string StatutClient(string courriel) //renvoie le statut de fidélité du client ayant ce courrie
         {
             string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
             int count;
@@ -270,7 +269,7 @@ namespace SQL_projet
             {
                 connection.Open();
                 
-                string query = "SELECT COUNT(*) FROM commande INNER JOIN client ON commande.idclient = client.idclient WHERE client.courriel = @courriel AND MONTH(commande.commandeDate) = @month";
+                string query = "SELECT COUNT(*) FROM commande JOIN client ON commande.idclient = client.idclient WHERE client.courriel = @courriel AND MONTH(commande.commandeDate) = @month";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@courriel", courriel);
@@ -306,16 +305,16 @@ namespace SQL_projet
                 case 3: break;
             }
             return choix;
-        }
+        }//renvoie le bouquet demandé par le client
         static string ChoixCommandeStandard() 
         {
             Console.Clear ();
             Console.WriteLine("Quel bouquet souhaitez-vous"); 
-            Console.WriteLine("1. Gros Merci, un arrangement floral avec marguerites et verdure parfait pour toute occasion pour un prix de 45 €");
-            Console.WriteLine("2. L’amoureux, un arrangement floral avec roses blanches et roses rouges pour la St-Valentin pour un prix de 65 €");
-            Console.WriteLine("3. L’Exotique, un arrangement floral avec ginger, oiseaux du paradis, roses et genet parfait pour toute occasion pour un prix de 40 €");
-            Console.WriteLine("4. Maman, un arrangement  floral avec gerbera, roses blanches, lys et alstroméria pour la Fête des mères pour un prix de 80 €");
-            Console.WriteLine("5. Vive la mariée, un arrangement  floral avec lys et orchidées parfait pour un mariage pour un prix de 120 €");
+            Console.WriteLine("1. Gros Merci, un arrangement floral avec marguerites et verdure parfait pour toute occasion pour un prix de 45 euros");
+            Console.WriteLine("2. L’amoureux, un arrangement floral avec roses blanches et roses rouges pour la St-Valentin pour un prix de 65 euros");
+            Console.WriteLine("3. L’Exotique, un arrangement floral avec ginger, oiseaux du paradis, roses et genet parfait pour toute occasion pour un prix de 40 euros");
+            Console.WriteLine("4. Maman, un arrangement  floral avec gerbera, roses blanches, lys et alstroméria pour la Fête des mères pour un prix de 80 euros");
+            Console.WriteLine("5. Vive la mariée, un arrangement  floral avec lys et orchidées parfait pour un mariage pour un prix de 120 euros");
             Console.WriteLine("6. Quiter");
             string bouquet="";
             int r = GoodValue(1, 6);
@@ -329,6 +328,197 @@ namespace SQL_projet
                 case 6: break;
             }
             return bouquet;
+        }//renvoie le bouquet standard choisi par le client
+
+        static void ProduitsMagasin() 
+        {
+            Console.Clear();
+            Console.WriteLine("Fleur        Prix(unité)");
+            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT nom,prixIndiv FROM produits;";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string nom = reader.GetString("nom");
+                            string prixIndiv = reader.GetString("prixIndiv");
+
+                            Console.WriteLine($"{nom}        {prixIndiv} euros");
+                        }
+                    }
+                }
+            }
+            Console.ReadLine();
         }
+        static void AffichageClients() 
+        {
+            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT c.nom, c.prenom, c.courriel, COUNT(co.idcommande) AS nombre_commandes FROM client c LEFT JOIN commande co ON c.idclient = co.idclient WHERE c.courriel!=@admin GROUP BY c.idclient;";
+
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@admin", "admin");
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        Console.WriteLine("Nom\tPrénom\tCourriel\tNombre de commandes\tStatut");
+
+                        while (reader.Read())
+                        {
+                            string nom = reader.GetString("nom");
+                            string prenom = reader.GetString("prenom");
+                            string courriel = reader.GetString("courriel");
+                            int nombreCommandes = reader.GetInt32("nombre_commandes");
+
+                            Console.WriteLine($"{nom}\t{prenom}\t{courriel}\t{nombreCommandes}\t{StatutClient(courriel)}");
+                        }
+                    }
+                }
+            }
+            Console.ReadLine();
+        }
+        static void AffichageClient(string courriel) 
+        {
+            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM client WHERE courriel = @courriel";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@courriel", courriel);
+
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())                           // parcours ligne par ligne
+                        {
+                            string currentRowAsString = "";
+
+                            for (int i = 0; i < reader.FieldCount; i++)    // parcours cellule par cellule
+                            {
+                                string valueAsString = reader.GetValue(i).ToString();  // recuperation de la valeur de chaque cellule sous forme d'une string (voir cependant les differentes methodes disponibles !!)
+                                currentRowAsString += valueAsString + ", ";
+                            }
+                            Console.WriteLine(currentRowAsString);    // affichage de la ligne (sous forme d'une "grosse" string) sur la sortie standard
+                        }
+                    }
+                }
+            }
+
+        }
+        static void ModificationsDonnées(string courriel) 
+        {
+            Console.Clear();
+            AffichageClient(courriel);
+            Console.WriteLine("Que voulez vous modifier ?");
+            Console.WriteLine("1. Nom");
+            Console.WriteLine("2. Telephone");
+            Console.WriteLine("3. Courriel");
+            Console.WriteLine("4. Mot de passe");
+            Console.WriteLine("5. Adresse de facturation");
+            Console.WriteLine("6. Carte de crédit");
+            Console.WriteLine("7. Quiter");
+            int r = GoodValue(1, 7);
+            string statut = StatutClient(courriel);
+            switch (r)
+            {
+                case 1: ModificationClient("nom",courriel); break;
+                case 2:ModificationClient("telephone", courriel);
+                    break;
+                case 3: ModificationClient("courriel", courriel); break;
+                case 4: ModificationClient("motDePasse", courriel); break;
+                case 5: ModificationClient("adresseFacturation", courriel); break;
+                case 6: ModificationClient("creditCard", courriel);break;
+            }
+            Console.ReadLine();
+            
+        }
+        static void ModificationClient(string info,string courriel) 
+        {
+            Console.WriteLine("Veuillez rentrer la nouvelle donnée");
+            int valeurInt=-1;
+            string valeur=null;
+            if (info == "telephone" || info=="creditCard") 
+            {
+                valeurInt=Convert.ToInt32(Console.ReadLine());
+            }
+            else { valeur = Console.ReadLine(); }
+            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = $"UPDATE client SET {info} = @nouvelleValeur WHERE courriel = @courriel";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    if (valeur != null) { command.Parameters.AddWithValue("@nouvelleValeur", valeur); }
+                    else { command.Parameters.AddWithValue("@nouvelleValeur", valeurInt); }
+                    command.Parameters.AddWithValue("@courriel", courriel);
+                    int rowsAffected = command.ExecuteNonQuery();
+                }
+                connection.Close();
+            }
+
+        }
+
+        static void AffichageCommandesPassées(string courriel) 
+        {
+            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT prix,livraisonDate FROM commande JOIN client ON commande.idclient = client.idclient WHERE client.courriel = @courriel;";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@courriel", courriel);
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            float prix = reader.GetFloat("prix");
+                            DateTime livraisonDate = reader.GetDateTime("livraisonDate");
+                            if (livraisonDate < DateTime.Now) { Console.WriteLine($"{prix}        {livraisonDate.ToShortDateString()}"); }
+                            else { Console.WriteLine($"{prix}        En cours de livraison"); }
+                        }
+                    }
+                }
+            }
+            Console.ReadLine();
+        }
+
+        static void MenuAdmin() 
+        {
+            bool quit = false;
+            while (!quit)
+            {
+                Console.Clear();
+                Console.WriteLine("Que voulez vous faire ?");
+                Console.WriteLine("1. Module Client");
+                Console.WriteLine("2. Module Commande");
+                Console.WriteLine("3. Module Produit");
+                Console.WriteLine("4. Module Statistiques");
+                Console.WriteLine("5. Quiter");
+                int r = GoodValue(1, 5);
+                switch (r)
+                {
+                    case 1: ModuleClient(); break;
+                    case 2:ModuleCommande();
+                        break;
+                    case 3: ModuleProduit(); break;
+                    case 4: ModuleStat(); break;
+                    case 5: quit = true; break;
+                }
+            }
+        }
+
     }
 }
