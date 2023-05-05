@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using MySql.Data.MySqlClient;
 using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
-using MySqlX.XDevAPI.CRUD;
-using Org.BouncyCastle.Tls;
-using System;
-using System.Security.Cryptography.X509Certificates;
 
 namespace SQL_projet
 {

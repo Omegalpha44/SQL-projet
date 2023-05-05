@@ -1,16 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
-using Org.BouncyCastle.Tls;
-using Google.Protobuf.WellKnownTypes;
-using MySqlX.XDevAPI.Common;
-using Org.BouncyCastle.Bcpg;
-using Org.BouncyCastle.Crypto;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Globalization;
 
 namespace SQL_projet
 {
@@ -20,6 +9,7 @@ namespace SQL_projet
         Sql_fetcher fetcher;
         string utilisateur; //permet de nommer le client (nom + prenom)
         int idClient; //permet d'identifier le client
+        string status;
         public AffichageGraphique()
         {
             fetcher = null;
@@ -33,7 +23,7 @@ namespace SQL_projet
             ExceptionManager(FirstLogin);
             if (utilisateur == "admin admin \n") ExceptionManager(AdminMenu);
             else ExceptionManager(Menu);
-    
+
         }
         void ExceptionManager(Ui func) // permet, si une erreur est détecté, de relancer la méthode
         {
@@ -78,7 +68,7 @@ namespace SQL_projet
             string coincidence = fetcher.ExecuterCommandeSqlString("select * from client where motDePasse ='" + password + "' and courriel = '" + login + "'");
             if (coincidence != "")
             {
-                utilisateur = fetcher.ExecuterCommandeSqlString("select nom, prenom from client where motDePasse = '" + password + "' and courriel = '" + login+"'");
+                utilisateur = fetcher.ExecuterCommandeSqlString("select nom, prenom from client where motDePasse = '" + password + "' and courriel = '" + login + "'");
                 idClient = int.Parse(fetcher.ExecuterCommandeSqlString("select idclient from client where motDePasse = '" + password + "' and courriel = '" + login + "'"));
                 Console.WriteLine("Connection réussi !");
                 Console.WriteLine("bienvenu " + utilisateur);
@@ -88,10 +78,10 @@ namespace SQL_projet
                 Console.WriteLine("Connection échoué !");
                 Console.Write("Voulez vous créer un compte ? (Y/N): ");
                 string rep = Console.ReadLine();
-                switch(rep)
+                switch (rep)
                 {
-                    case "Y" or "y": AjouterClient(); Console.WriteLine("Votre compte est créé ! Veuillez vous reconnecter");FirstLogin() ; break;
-                    case "N" or "n": Console.WriteLine("veuillez réessayer de rentrer vos identifiants");FirstLogin();break;
+                    case "Y" or "y": AjouterClient(); Console.WriteLine("Votre compte est créé ! Veuillez vous reconnecter"); FirstLogin(); break;
+                    case "N" or "n": Console.WriteLine("veuillez réessayer de rentrer vos identifiants"); FirstLogin(); break;
                     default: Console.WriteLine("veuillez réessayer de rentrer vos identifiants"); FirstLogin(); break;
                 }
             }
@@ -107,19 +97,19 @@ namespace SQL_projet
             Console.WriteLine("4. Module Statistiques");
             Console.WriteLine("5. Quiter");
             int r = GoodValue(1, 5);
-            switch(r)
+            switch (r)
             {
-                case 1 : ModuleClient();break;
-                case 2: ModuleProduit();break;
-                case 3: ModuleCommande();break;
-                case 4: ModuleStat();break;
+                case 1: ModuleClient(); break;
+                case 2: ModuleProduit(); break;
+                case 3: ModuleCommande(); break;
+                case 4: ModuleStat(); break;
                 case 5: break;
             }
         }
         static void MenuClient(string courriel)
         {
-            bool quit=false;
-            while (!quit) 
+            bool quit = false;
+            while (!quit)
             {
                 Console.Clear();
                 string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
@@ -161,34 +151,34 @@ namespace SQL_projet
                         break;
                     case 3: break;
                     case 4: ChoixProduits(); break;
-                    case 5:quit = true; break;
+                    case 5: quit = true; break;
                 }
             }
-            
-        }
-        }
 
+        }
         public void Menu()
         {
             List<string[]> panier = new List<string[]>();
             Console.Clear();
+            status = StatutClient();
             Console.WriteLine("bienvenue chez Belle Fleur ! @ " + utilisateur);
+            Console.WriteLine("Statut actuel : " + status);
             Console.WriteLine("Nous vous accueillons tout les jours dans nos magasins");
             Console.WriteLine("Que voulez vous faire :");
             Console.WriteLine("1.Voir mes commandes");
             Console.WriteLine("2.Faire une nouvelle commande");
             Console.WriteLine("3.Quitter");
             int res = GoodValue(1, 3);
-            switch(res)
+            switch (res)
             {
                 case 1: VoireCommande(); break;
-                case 2: RemplissagePanier(new List<string[]>());break;
+                case 2: RemplissagePanier(new List<string[]>()); break;
                 case 3: break;
             }
-            
-            
+
+
         }
-        public void RemplissagePanier(List<string[]> panier,bool isFlowerFilling = false)
+        public void RemplissagePanier(List<string[]> panier, bool isFlowerFilling = false)
         {
             Console.Clear();
             float prixTotal = 0f;
@@ -199,14 +189,14 @@ namespace SQL_projet
                 prixTotal = 0f;
                 foreach (string[] elem in panier)
                 {
-                    Console.WriteLine(elem[0] + ": " + elem[1] +", quantité :" + elem[2] +", prix : " + elem[3]+" euros");
+                    Console.WriteLine(elem[0] + ": " + elem[1] + ", quantité :" + elem[2] + ", prix : " + elem[3] + " euros");
                     prixTotal += float.Parse(elem[3]);
                     Console.WriteLine("---------------");
                 }
                 Console.WriteLine("===============");
                 Console.WriteLine("Prix total : " + prixTotal + " euros");
                 Console.WriteLine();
-                
+
             }
             else Console.WriteLine("Votre panier est vide");
             int r;
@@ -221,8 +211,8 @@ namespace SQL_projet
                 r = GoodValue(1, 5);
             }
 
-            else {r = 2; };
-            switch(r)
+            else { r = 2; };
+            switch (r)
             {
                 case 1:
                     {
@@ -237,10 +227,10 @@ namespace SQL_projet
                         {
                             if (elem[0] == reponse)
                             {
-                                tempPanier = new string[] { elem[0], elem[1] , elem[3], elem[2] };    
+                                tempPanier = new string[] { elem[0], elem[1], elem[3], elem[2] };
                             }
                         }
-                        if(tempPanier == null)
+                        if (tempPanier == null)
                         {
                             Console.WriteLine("le bouquet n'a pas été trouvé. Veuillez réessayer.");
                             Console.ReadKey();
@@ -256,7 +246,7 @@ namespace SQL_projet
                             }
                             int quantiteRestante = int.Parse(tempPanier[3]) - quantiteDejaCommande;
                             Console.WriteLine(quantiteRestante + " restants");
-                            if(quantiteRestante == 0)
+                            if (quantiteRestante == 0)
                             {
                                 Console.WriteLine("Il n'y a plus de cet élément restant");
                                 Console.ReadKey();
@@ -272,24 +262,24 @@ namespace SQL_projet
                                 Console.ReadKey();
                                 RemplissagePanier(panier);
                             }
-                            
-                            
+
+
                         }
-                        
-                        
+
+
                         break;
                     }
                 case 2:
                     {
                         Console.WriteLine("Voici les fleurs disponibles (seulement celles disponibles dans la période actuelle) :");
                         int dateAjd = DateTime.Now.Month;
-                        string commande = String.Format("select idproduit,nom,quantite,prixIndiv from produits where isAlreadyComposed = 0 and {0} between dateA and dateB",dateAjd);
+                        string commande = String.Format("select idproduit,nom,quantite,prixIndiv from produits where isAlreadyComposed = 0 and {0} between dateA and dateB", dateAjd);
                         List<string[]> fleurs = fetcher.ExecuterCommandeSqlList(commande);
                         fetcher.DisplayData(commande);
                         Console.WriteLine("Veuillez indiquer le numéro de la fleur que vous voulez ajouter : ");
                         string reponse = Console.ReadLine();
-                        Tuple<string,int>[] quantiteDejaFourni = new Tuple<string, int>[1000]; //on supposera que le client ne peut pas passer plus de 1000 commandes en simultané. 
-                        
+                        Tuple<string, int>[] quantiteDejaFourni = new Tuple<string, int>[1000]; //on supposera que le client ne peut pas passer plus de 1000 commandes en simultané. 
+
                         string[] tempPanier = null;
                         foreach (string[] elem in fleurs)
                         {
@@ -339,7 +329,7 @@ namespace SQL_projet
                                     RemplissagePanier(panier);
                                 }
                             }
-                            
+
                         }
                         break;
                     }
@@ -351,7 +341,7 @@ namespace SQL_projet
                         Console.WriteLine("Veuillez indiquer le prix dépensé :");
                         float prix = float.Parse(Console.ReadLine());
                         Console.WriteLine("La commande a été enregistrée ! nous reviendrons vers vous une fois traité par un expert");
-                        panier.Add(new string[5]{ "-1",note,"1",prix.ToString(),"CPAV"});
+                        panier.Add(new string[5] { "-1", note, "1", prix.ToString(), "CPAV" });
                         Console.ReadKey();
                         RemplissagePanier(panier);
                         break;
@@ -359,7 +349,21 @@ namespace SQL_projet
                 case 4:
                     {
                         Console.WriteLine("Nous allons procéder au paiement, veuillez patienter...");
-                        Console.WriteLine("la sommme totale à payer est : " + prixTotal);
+                        float prixDef = 0f;
+                        Console.WriteLine(status);
+                        if (status == "Or")
+                        {
+                            prixDef = prixTotal * 0.80f;
+                        }
+                        else if (status == "Bronze")
+                        {
+                            prixDef = prixTotal * 0.90f;
+                        }
+                        else
+                        {
+                            prixDef = prixTotal;
+                        }
+                        Console.WriteLine("la sommme totale à payer est : " + prixDef + " euros. Une réduction est appliqué en fonction de votre statut");
                         Thread.Sleep(1000);
                         Console.WriteLine("succès ! Quel message souhaitez-vous inscrire sur la commande ? ");
                         string message = Console.ReadLine();
@@ -368,9 +372,9 @@ namespace SQL_projet
                         Console.WriteLine("Lieu de livraison ? :");
                         string lieuDeLivraison = Console.ReadLine();
                         //calcule le nombre de jour entre aujourd'hui et le jour de la livraison
-                        int dayOfDifference = (livraison-DateTime.Now).Days; //renvoie la différence en jours
+                        int dayOfDifference = (livraison - DateTime.Now).Days; //renvoie la différence en jours
                         string note = "";
-                        if(dayOfDifference>3)
+                        if (dayOfDifference > 3)
                         {
                             foreach (string[] elem in panier)
                             {
@@ -386,9 +390,9 @@ namespace SQL_projet
                         {
                             Console.WriteLine("Comme votre commande a été passé 3 jours avant la livraison, nous ne pouvons guarantir le stock");
                         }
-                        string commandeAjout = String.Format("insert into commande(idclient, prix, livraisonAdresse, message, livraisonDate, commandeDate, note) value ({0},{1},'{2}','{3}','{4}','{5}','{6}')",idClient,prixTotal,lieuDeLivraison,message,livraison.ToString("yyyyMMdd"), DateTime.Now.ToString("yyyyMMdd"), note);
+                        string commandeAjout = String.Format("insert into commande(idclient, prix, livraisonAdresse, message, livraisonDate, commandeDate, note) value ({0},{1},'{2}','{3}','{4}','{5}','{6}')", idClient, prixDef.ToString("N2", new CultureInfo("en-US")), lieuDeLivraison, message, livraison.ToString("yyyyMMdd"), DateTime.Now.ToString("yyyyMMdd"), note);
                         fetcher.ExecuterCommande(commandeAjout);
-                        string idCommande = fetcher.ExecuterCommandeSqlList("select idCommande from commande where idclient = " + idClient+ " order by idCommande desc")[0][0];
+                        string idCommande = fetcher.ExecuterCommandeSqlList("select idCommande from commande where idclient = " + idClient + " order by idCommande desc")[0][0];
                         string commandeAjoutProduit = "";
                         foreach (string[] elem in panier) // on lis chaque item à sa commande
                         {
@@ -414,12 +418,12 @@ namespace SQL_projet
                     }
             }
         }
-        
+
         public void VoireCommande()
         {
             Console.Clear();
             Console.WriteLine("Voici vos commandes en cours :");
-            List<string[]> commandes = fetcher.ExecuterCommandeSqlList("select idcommande,prix,commandeDate,livraisonAdresse,livraisonDate,note, nom,nombre,(prixIndiv*nombre) as prixElement, composition,catégorie,message from commande natural join composition join produits p on composition.idproduit = p.idproduit where idclient = "+idClient+" order by idcommande");
+            List<string[]> commandes = fetcher.ExecuterCommandeSqlList("select idcommande,prix,commandeDate,livraisonAdresse,livraisonDate,note, nom,nombre,(prixIndiv*nombre) as prixElement, composition,catégorie,message from commande natural join composition join produits p on composition.idproduit = p.idproduit where idclient = " + idClient + " order by idcommande");
             if (commandes != null)
             {
                 List<string> indices = new List<string>();
@@ -472,10 +476,9 @@ namespace SQL_projet
                 Menu();
             }
         }
-        void ModuleClient()
+        void ModuleClient() // à refaire, n'est pas la consigne
         {
             Console.Clear();
-            Console.WriteLine("Lorem Ipsum");
             Console.WriteLine("Bienvenu chez Belle Fleure");
             Console.WriteLine("Que voulez vous faire ?");
             Console.WriteLine("1. Login");
@@ -491,11 +494,7 @@ namespace SQL_projet
             Console.ReadLine();
             Menu();
         }
-        void AjouterClient()
-        {
-            
-        }
-        void ModuleProduit()
+        void ModuleProduit() // vide
         {
             Console.Clear();
             Console.WriteLine("Lorem Ipsum");
@@ -510,7 +509,7 @@ namespace SQL_projet
             Console.WriteLine("1. Ajouter une commande");
             Console.WriteLine("2. Voir les commandes");
             int r = GoodValue(1, 2);
-            switch(r)
+            switch (r)
             {
                 case 1: break;
                 case 2: break;
@@ -518,70 +517,20 @@ namespace SQL_projet
             Console.ReadLine();
             Menu();
         }
-        void AjouterCommande()
-        {
-            //Console.WriteLine("Vous avez choisi de rajouter une commande dans la base de donnée");
-            //Console.Write("Nouveau client ? : (Y/N)");
-            //string rep = Console.ReadLine();
-            //switch(rep)
-            //{
-            //    case "Y" or "y":
-            //        {
-            //            Console.WriteLine("Vous allez entrer des informations sur le client :");
-            //            Console.Write("nom :");
-            //            string nom = Console.ReadLine();
-            //            Console.Write("prenom :");
-            //            string prenom = Console.ReadLine();
-            //            bool goodphone = false;
-            //            while (!goodphone)
-            //            Console.Write("téléphone :");
-            //            try
-            //            {
-            //                int phone = int.Parse(Console.ReadLine());
-            //                goodphone = true;
-            //            }
-            //            catch
-            //            {
-            //            }
-            //            Console.Write("courriel : ");
-            //            string courriel = Console.ReadLine();
-            //            Console.Write("mot de passe : ");
-            //            string mdp = Console.ReadLine();
-            //            Console.Write("addresse de facturation : ");
-            //            string facturation = Console.ReadLine();
-            //            break;
-            //            bool goodcard = false;
-            //            while (!goodcard)
-            //                Console.Write("téléphone :");
-            //            try
-            //            {
-            //                int card = int.Parse(Console.ReadLine());
-            //                goodcard = true;
-            //            }
-            //            catch
-            //            {
-            //            }
-                        
-
-            //        }
-            //    case "O" or "o":
-            //        {
-                        
-            //            break;
-            //        }
-            //    default: break;
-            //}
-        }
         void ModuleStat()
         {
             Console.Clear();
             Console.WriteLine("Lorem Ipsum");
             Console.ReadLine();
             Menu();
-        }
-        static void AjouterClient()
+        } //vide
+        #region vieux code, non utilisé
+        void AjouterClient()
         {
             Console.Clear();
+            Console.WriteLine("Vous allez vous inscrire à belle fleure. Nous reccueillerons les données indiquées uniquement dans un but d'inscription");
+            Console.WriteLine("Veuillez appuyer sur un bouton pour indiquer votre accord :");
+            Console.ReadKey();
             Console.WriteLine("Prénom : ");
             string prenom = Console.ReadLine();
             Console.WriteLine("Nom : ");
@@ -595,7 +544,7 @@ namespace SQL_projet
 
             string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
             int exist = 1;
-            while (exist==1)
+            while (exist == 1)
             {
                 using (MySqlConnection connection1 = new MySqlConnection(connectionString))
                 {
@@ -621,12 +570,12 @@ namespace SQL_projet
                     MySqlConnection connection = new MySqlConnection(connectionString);
                     connection.Open();
                     MySqlCommand command = connection.CreateCommand();
-                    command.CommandText = "INSERT INTO `Fleurs`.`client` (`nom`, `prenom`,`telephone`,`courriel`, `motDePasse`, `facturationAdresse`,`creditCard`) VALUES ('" + nom + "', '" + prenom + "','" +telephone+ "' ,'" + courriel + "','" + mdp + "', '" + adresse + "',    '" + cb + "');";
+                    command.CommandText = "INSERT INTO `Fleurs`.`client` (`nom`, `prenom`,`telephone`,`courriel`, `motDePasse`, `facturationAdresse`,`creditCard`) VALUES ('" + nom + "', '" + prenom + "','" + telephone + "' ,'" + courriel + "','" + mdp + "', '" + adresse + "',    '" + cb + "');";
 
                     MySqlDataReader reader;
                     reader = command.ExecuteReader();
                     connection.Close();
-                    
+
                 }
                 else
                 {
@@ -637,14 +586,13 @@ namespace SQL_projet
                     mdp = Console.ReadLine();
                 }
             }
-
-
+            FirstLogin();
         }
-        static void ConnectionClient() 
+        static void ConnectionClient()
         {
             Console.Clear();
             int exist = 0;
-            while (exist == 0) 
+            while (exist == 0)
             {
                 Console.WriteLine("Courriel :");
                 string courriel = Console.ReadLine();
@@ -665,31 +613,30 @@ namespace SQL_projet
 
                     connection.Close();
                 }
-                if(exist == 0) 
+                if (exist == 0)
                 {
                     Console.Clear();
                     Console.WriteLine("Courrier ou mot de passe éronné. Veuillez réessayer");
                 }
-                else 
+                else
                 {
                     Console.Clear();
                     MenuClient(courriel);
                 }
 
             }
-            
+
 
         }
-        
-        static string StatutClient(string courriel) 
+        static string StatutClient(string courriel)
         {
             string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
             int count;
-            DateTime commandeDate=DateTime.Now;
+            DateTime commandeDate = DateTime.Now;
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 connection.Open();
-                
+
                 string query = "SELECT COUNT(*) FROM commande INNER JOIN client ON commande.idclient = client.idclient WHERE client.courriel = @courriel AND MONTH(commande.commandeDate) = @month";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
@@ -701,18 +648,45 @@ namespace SQL_projet
                 connection.Close();
             }
             string statut;
-            if (count < 1) 
+            if (count < 1)
             {
                 statut = " ";
             }
-            else if(count <5) { statut = "Bronze"; }
+            else if (count < 5) { statut = "Bronze"; }
             else { statut = "Or"; }
             return statut;
         }
-
-        static string ChoixProduits() 
+        string StatutClient()
         {
-            Console.Clear ();
+            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+            int count;
+            DateTime commandeDate = DateTime.Now;
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT COUNT(*) FROM commande INNER JOIN client ON commande.idclient = client.idclient WHERE client.idclient = @client AND MONTH(commande.commandeDate) = @month";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@client", idClient);
+                    command.Parameters.AddWithValue("@month", commandeDate.Month);
+                    count = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                connection.Close();
+            }
+            string statut;
+            if (count < 1)
+            {
+                statut = " ";
+            }
+            else if (count < 5) { statut = "Bronze"; }
+            else { statut = "Or"; }
+            return statut;
+        }
+        static string ChoixProduits()
+        {
+            Console.Clear();
             Console.WriteLine("Quel type de commande souhaitez-vous ?");
             Console.WriteLine("1. Commande standard");
             Console.WriteLine("2. Commande personnalisée");
@@ -721,23 +695,23 @@ namespace SQL_projet
             string choix = "";
             switch (r)
             {
-                case 1: choix=ChoixCommandeStandard(); break;
-                case 2:break;
+                case 1: choix = ChoixCommandeStandard(); break;
+                case 2: break;
                 case 3: break;
             }
             return choix;
         }
-        static string ChoixCommandeStandard() 
+        static string ChoixCommandeStandard()
         {
-            Console.Clear ();
-            Console.WriteLine("Quel bouquet souhaitez-vous"); 
+            Console.Clear();
+            Console.WriteLine("Quel bouquet souhaitez-vous");
             Console.WriteLine("1. Gros Merci, un arrangement floral avec marguerites et verdure parfait pour toute occasion pour un prix de 45 €");
             Console.WriteLine("2. L’amoureux, un arrangement floral avec roses blanches et roses rouges pour la St-Valentin pour un prix de 65 €");
             Console.WriteLine("3. L’Exotique, un arrangement floral avec ginger, oiseaux du paradis, roses et genet parfait pour toute occasion pour un prix de 40 €");
             Console.WriteLine("4. Maman, un arrangement  floral avec gerbera, roses blanches, lys et alstroméria pour la Fête des mères pour un prix de 80 €");
             Console.WriteLine("5. Vive la mariée, un arrangement  floral avec lys et orchidées parfait pour un mariage pour un prix de 120 €");
             Console.WriteLine("6. Quiter");
-            string bouquet="";
+            string bouquet = "";
             int r = GoodValue(1, 6);
             switch (r)
             {
@@ -750,5 +724,6 @@ namespace SQL_projet
             }
             return bouquet;
         }
+        #endregion
     }
 }
