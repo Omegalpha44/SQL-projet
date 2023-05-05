@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Asn1;
 using System.Globalization;
 
 namespace SQL_projet
@@ -56,6 +57,7 @@ namespace SQL_projet
             }
         }
         public void FirstLogin()
+            //pour la primo connection
         {
             Console.Clear();
             Console.WriteLine("bienvenue chez Belle Fleur");
@@ -87,6 +89,7 @@ namespace SQL_projet
             }
         }
         public void AdminMenu()
+            //affichage de l'admin
         {
             Console.Clear();
             Console.WriteLine("Bonjour Admin");
@@ -533,13 +536,105 @@ namespace SQL_projet
             Console.Clear();
             Console.WriteLine("Module Commande :");
             Console.WriteLine("================");
-            Console.WriteLine("1. Ajouter une commande");
-            Console.WriteLine("2. Voir les commandes");
-            int r = GoodValue(1, 2);
+            Console.WriteLine("1. Voir toutes les commandes");
+            Console.WriteLine("2. voir les commandes d'un client");
+            Console.WriteLine("3. voir l'état des commandes");
+            Console.WriteLine("4. Changer l'etat d'une commande");
+            Console.WriteLine("5. Quitter");
+            int r = GoodValue(1, 5);
             switch (r)
             {
-                case 1: break;
-                case 2: break;
+                case 1:
+                    {
+                        fetcher.DisplayData("select * from commande");
+                        Console.ReadKey();
+                        ModuleCommande();
+                        break;
+                    }
+                case 2:
+                    {
+                        Console.WriteLine("Veuillez indiquer le numéro du client en question : ");
+                        string value = Console.ReadLine();
+                        List<string[]> commandeClient = fetcher.ExecuterCommandeSqlList("select * from commande where idclient =" + value);
+                        if (commandeClient[0]!=null)
+                        {
+                            fetcher.DisplayData("select * from commande where idclient =" + value);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Aucun client ne correspond à ce numéro");
+                        }
+                        Console.ReadKey();
+                        ModuleCommande();
+                        break;
+                    }
+                case 3:
+                    {
+                        List<string[]> données = fetcher.ExecuterCommandeSqlList("select c.idcommande,nom,etat from commande join composition c on commande.idcommande = c.idcommande natural join produits;");
+                        if (données[0]!=null)
+                        {
+                            List<string> indices = new List<string>();
+                            foreach (string[] elem in données)
+                            {
+                                if (indices.Find(x => elem[0] == x) == null) //nouvel indice de commande
+                                {
+                                    Console.WriteLine("Commande n°" + elem[0]);
+                                    indices.Add(elem[0]);
+                                }
+                                Console.WriteLine("element : " + elem[1] + "; etat :" + elem[2]);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("aucune donnée à afficher");
+                        }
+                        Console.ReadKey();
+                        ModuleCommande();
+                        break;
+                    }
+                case 4:
+                    {
+                        List<string[]> données = fetcher.ExecuterCommandeSqlList("select c.idcommande,nom,etat from commande join composition c on commande.idcommande = c.idcommande natural join produits;");
+                        if (données[0] != null)
+                        {
+                            List<string> indices = new List<string>();
+                            foreach (string[] elem in données)
+                            {
+                                if (indices.Find(x => elem[0] == x) == null) //nouvel indice de commande
+                                {
+                                    Console.WriteLine("Commande n°" + elem[0]);
+                                    indices.Add(elem[0]);
+                                }
+                                Console.WriteLine("element : " + elem[1] + "; etat :" + elem[2]);
+                            }
+                            Console.WriteLine();
+                            Console.WriteLine("Quel commande voulez-vous modifier l'état d'une sous-commande ?");
+                            string rep = Console.ReadLine();
+                            if (indices.Find(x => rep == x) != null)
+                            {
+                                fetcher.DisplayData("select idproduit,nom,etat from commande join composition c on commande.idcommande = c.idcommande natural join produits where c.idcommande = " + rep);
+                                Console.WriteLine("Quel sous commande ? :");
+                                string rep2 = Console.ReadLine();
+                                Console.WriteLine("Entrer le nouveau état :");
+                                string etat= Console.ReadLine();
+                                fetcher.ExecuterCommande(String.Format("update composition set etat = '{0}' where idcommande = {1} and idproduit = {2};",etat,rep,rep2));
+                                Console.WriteLine("Modification faite !");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("aucune donnée à modifier");
+                        }
+                        
+                        Console.ReadKey();
+                        ModuleCommande();
+                        break;
+                    }
+                case 5:
+                    {
+                        AdminMenu();
+                        break;
+                    }
             }
             Console.ReadLine();
             Menu();
@@ -614,7 +709,7 @@ namespace SQL_projet
                         break;
                     }
             }
-        } //vide
+        } 
         #region vieux code, non utilisé
         void AjouterClient()
         {
