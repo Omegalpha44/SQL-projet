@@ -520,9 +520,73 @@ namespace SQL_projet
         void ModuleStat()
         {
             Console.Clear();
-            Console.WriteLine("Lorem Ipsum");
-            Console.ReadLine();
-            Menu();
+            Console.WriteLine("Bienvenue dans le menu statistiques");
+            Console.WriteLine("Que souhaitez-vous connaitre ? ");
+            Console.WriteLine("1. prix moyen du bouquet");
+            Console.WriteLine("2. prix moyen d'une commande");
+            Console.WriteLine("3. le meilleur client d'une période donnée");
+            Console.WriteLine("4. le bouquet standard le plus populaire");
+            Console.WriteLine("5. Le magasin ayant généré le plus de chiffre d'affaire");
+            Console.WriteLine("6. Revenir au menu principal");
+            int r = GoodValue(1, 6);
+            switch(r)
+            {
+                case 1:
+                    {
+                        float prixMoyen = float.Parse(fetcher.ExecuterCommandeSqlList("select avg(prixIndiv) from produits where isAlreadyComposed = 1")[0][0]);
+                        Console.WriteLine("le prix moyen des bouquet est : " + prixMoyen);
+                        Console.ReadKey();
+                        ModuleStat();
+                        break;
+                    }
+                case 2:
+                    {
+                        float prixMoyenCommande = float.Parse(fetcher.ExecuterCommandeSqlList("select avg(prix) from commande")[0][0]);
+                        Console.WriteLine("le prix moyen des commandes est : " + prixMoyenCommande);
+                        Console.ReadKey();
+                        ModuleStat();
+                        break;
+                    }
+                case 3:
+                    {
+                        Console.WriteLine("entrez les dates limites à la suite : (format dd/mm/yyyy)");
+                        DateTime dateA = DateTime.Parse(Console.ReadLine());
+                        DateTime dateB = DateTime.Parse(Console.ReadLine());
+                        string[] meilleur_client = fetcher.ExecuterCommandeSqlList(String.Format("select nom,prenom,sum(prix) from client join (select prix,idclient from commande where commandeDate between '{0}' and '{1}') c on client.idclient = c.idclient  group by c.idclient order by sum(prix) desc limit 1",dateA.ToString("yyyyMMdd"), dateB.ToString("yyyyMMdd")))[0];
+                        if (meilleur_client != null)
+                        {
+                            Console.WriteLine("Le meilleur client est " + meilleur_client[0] + " " + meilleur_client[1]);
+                            Console.WriteLine("total payé : " + meilleur_client[2]);
+                        }
+                        else Console.WriteLine("Pas de client dans cette timezone.");
+                        Console.ReadKey();
+                        ModuleStat();
+                        break;
+                    }
+                case 4:
+                    {
+                        string[] meilleur_bouquet = fetcher.ExecuterCommandeSqlList("select nom,sum(nombre) from produits join composition c on produits.idproduit = c.idproduit where isAlreadyComposed = 1 group by c.idproduit order by sum(nombre) desc limit 1")[0];
+                        Console.WriteLine("Meilleur bouquet : " + meilleur_bouquet[0]);
+                        Console.WriteLine("total vendu : " + meilleur_bouquet[1]);
+                        Console.ReadKey();
+                        ModuleStat();
+                        break;
+                    }
+                case 5:
+                    {
+                        string[] meilleur_magasin = fetcher.ExecuterCommandeSqlList("select magasin,sum(prix) from commande group by magasin order by sum(prix) desc limit 1")[0];
+                        Console.WriteLine("Meilleur magasin : " + meilleur_magasin[0]);
+                        Console.WriteLine("total vendu : " + meilleur_magasin[1]);
+                        Console.ReadKey();
+                        ModuleStat();
+                        break;
+                    }
+                case 6:
+                    {
+                        AdminMenu();
+                        break;
+                    }
+            }
         } //vide
         #region vieux code, non utilisé
         void AjouterClient()
