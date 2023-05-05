@@ -90,6 +90,9 @@ namespace SQL_projet
         {
             Console.Clear();
             Console.WriteLine("Bonjour Admin");
+            Console.WriteLine("===============");
+            Stock();
+            Console.WriteLine("===============");
             Console.WriteLine("Que voulez vous faire ?");
             Console.WriteLine("1. Module Client");
             Console.WriteLine("2. Module Produit");
@@ -104,6 +107,30 @@ namespace SQL_projet
                 case 3: ModuleCommande(); break;
                 case 4: ModuleStat(); break;
                 case 5: break;
+            }
+        }
+        public void Stock()
+        //gestion des stocks
+        {
+            List<string[]> produits = fetcher.ExecuterCommandeSqlList("select nom,quantite,isAlreadyComposed from produits");
+            foreach (string[] elem in  produits)
+            {
+                if (elem[2] == "1") // pour les bouquets
+                {
+                    if (int.Parse(elem[1])<30)
+                    {
+                        Console.WriteLine("produit : " + elem[0] + " est en quantité insuffisante");
+                        Console.WriteLine("Quantité : " + elem[1]);
+                    }
+                }
+                else // pour les fleurs
+                {
+                    if (int.Parse(elem[1]) < 100)
+                    {
+                        Console.WriteLine("produit : " + elem[0] + " est en quantité insuffisante");
+                        Console.WriteLine("Quantité : " + elem[1]);
+                    }
+                }
             }
         }
         static void MenuClient(string courriel)
