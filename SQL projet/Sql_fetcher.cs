@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using System.Data;
 using System.Text;
 
 namespace SQL_projet
@@ -115,6 +116,17 @@ namespace SQL_projet
             MySqlCommand command = new MySqlCommand(commandText, sqlConnection);
             MySqlDataReader reader = command.ExecuteReader();
             reader.Read();
+            sqlConnection.Close();
+        }
+        public void Export2Xml(string folder,string commande)
+        {
+            sqlConnection.Open();
+            //permet d'exporter des données de SQL à XML
+            MySqlCommand command = new MySqlCommand(commande, sqlConnection);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(command);
+            DataSet ds = new DataSet();
+            adapter.Fill(ds);
+            ds.WriteXml(folder);
             sqlConnection.Close();
         }
     }

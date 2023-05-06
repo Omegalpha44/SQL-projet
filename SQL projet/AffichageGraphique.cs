@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using Org.BouncyCastle.Asn1;
+using System.Data;
 using System.Globalization;
 
 namespace SQL_projet
@@ -7,7 +8,7 @@ namespace SQL_projet
     public delegate void Ui();
     internal class AffichageGraphique
     {
-        Sql_fetcher fetcher;
+        public Sql_fetcher fetcher;
         string utilisateur; //permet de nommer le client (nom + prenom)
         int idClient; //permet d'identifier le client
         string status;
@@ -524,6 +525,7 @@ namespace SQL_projet
             Console.ReadLine();
             Menu();
         }
+        
         void ModuleProduit() // vide
         {
             Console.Clear();
