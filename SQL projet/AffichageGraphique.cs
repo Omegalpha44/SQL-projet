@@ -58,7 +58,7 @@ namespace SQL_projet
             }
         }
         public void FirstLogin()
-        //pour la primo connection
+            //pour la primo connection
         {
             Console.Clear();
             Console.WriteLine("bienvenue chez Belle Fleur");
@@ -90,7 +90,7 @@ namespace SQL_projet
             }
         }
         public void AdminMenu()
-        //affichage de l'admin
+            //affichage de l'admin
         {
             Console.Clear();
             Console.WriteLine("Bonjour Admin");
@@ -117,11 +117,11 @@ namespace SQL_projet
         //gestion des stocks
         {
             List<string[]> produits = fetcher.ExecuterCommandeSqlList("select nom,quantite,isAlreadyComposed from produits");
-            foreach (string[] elem in produits)
+            foreach (string[] elem in  produits)
             {
                 if (elem[2] == "1") // pour les bouquets
                 {
-                    if (int.Parse(elem[1]) < 30)
+                    if (int.Parse(elem[1])<30)
                     {
                         Console.WriteLine("produit : " + elem[0] + " est en quantité insuffisante");
                         Console.WriteLine("Quantité : " + elem[1]);
@@ -525,7 +525,7 @@ namespace SQL_projet
             Console.ReadLine();
             Menu();
         }
-
+        
         void ModuleProduit() // vide
         {
             Console.Clear();
@@ -558,7 +558,7 @@ namespace SQL_projet
                         Console.WriteLine("Veuillez indiquer le numéro du client en question : ");
                         string value = Console.ReadLine();
                         List<string[]> commandeClient = fetcher.ExecuterCommandeSqlList("select * from commande where idclient =" + value);
-                        if (commandeClient[0] != null)
+                        if (commandeClient[0]!=null)
                         {
                             fetcher.DisplayData("select * from commande where idclient =" + value);
                         }
@@ -573,7 +573,7 @@ namespace SQL_projet
                 case 3:
                     {
                         List<string[]> données = fetcher.ExecuterCommandeSqlList("select c.idcommande,nom,etat from commande join composition c on commande.idcommande = c.idcommande natural join produits;");
-                        if (données[0] != null)
+                        if (données[0]!=null)
                         {
                             List<string> indices = new List<string>();
                             foreach (string[] elem in données)
@@ -618,8 +618,8 @@ namespace SQL_projet
                                 Console.WriteLine("Quel sous commande ? :");
                                 string rep2 = Console.ReadLine();
                                 Console.WriteLine("Entrer le nouveau état :");
-                                string etat = Console.ReadLine();
-                                fetcher.ExecuterCommande(String.Format("update composition set etat = '{0}' where idcommande = {1} and idproduit = {2};", etat, rep, rep2));
+                                string etat= Console.ReadLine();
+                                fetcher.ExecuterCommande(String.Format("update composition set etat = '{0}' where idcommande = {1} and idproduit = {2};",etat,rep,rep2));
                                 Console.WriteLine("Modification faite !");
                             }
                         }
@@ -627,7 +627,7 @@ namespace SQL_projet
                         {
                             Console.WriteLine("aucune donnée à modifier");
                         }
-
+                        
                         Console.ReadKey();
                         ModuleCommande();
                         break;
@@ -653,7 +653,7 @@ namespace SQL_projet
             Console.WriteLine("5. Le magasin ayant généré le plus de chiffre d'affaire");
             Console.WriteLine("6. Revenir au menu principal");
             int r = GoodValue(1, 6);
-            switch (r)
+            switch(r)
             {
                 case 1:
                     {
@@ -676,7 +676,7 @@ namespace SQL_projet
                         Console.WriteLine("entrez les dates limites à la suite : (format dd/mm/yyyy)");
                         DateTime dateA = DateTime.Parse(Console.ReadLine());
                         DateTime dateB = DateTime.Parse(Console.ReadLine());
-                        string[] meilleur_client = fetcher.ExecuterCommandeSqlList(String.Format("select nom,prenom,sum(prix) from client join (select prix,idclient from commande where commandeDate between '{0}' and '{1}') c on client.idclient = c.idclient  group by c.idclient order by sum(prix) desc limit 1", dateA.ToString("yyyyMMdd"), dateB.ToString("yyyyMMdd")))[0];
+                        string[] meilleur_client = fetcher.ExecuterCommandeSqlList(String.Format("select nom,prenom,sum(prix) from client join (select prix,idclient from commande where commandeDate between '{0}' and '{1}') c on client.idclient = c.idclient  group by c.idclient order by sum(prix) desc limit 1",dateA.ToString("yyyyMMdd"), dateB.ToString("yyyyMMdd")))[0];
                         if (meilleur_client != null)
                         {
                             Console.WriteLine("Le meilleur client est " + meilleur_client[0] + " " + meilleur_client[1]);
@@ -711,7 +711,7 @@ namespace SQL_projet
                         break;
                     }
             }
-        }
+        } 
         #region vieux code, non utilisé
         void AjouterClient()
         {
@@ -913,6 +913,5 @@ namespace SQL_projet
             return bouquet;
         }
         #endregion
-
     }
 }

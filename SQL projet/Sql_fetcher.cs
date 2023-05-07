@@ -118,7 +118,7 @@ namespace SQL_projet
             reader.Read();
             sqlConnection.Close();
         }
-        public void Export2Xml(string folder, string commande)
+        public void Export2Xml(string folder,string commande)
         {
             sqlConnection.Open();
             //permet d'exporter des données de SQL à XML
