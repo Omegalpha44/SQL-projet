@@ -384,11 +384,11 @@ namespace SQL_projet
                         Console.WriteLine(status);
                         if (status == "Or")
                         {
-                            prixDef = prixTotal * 0.80f;
+                            prixDef = prixTotal * 0.85f;
                         }
                         else if (status == "Bronze")
                         {
-                            prixDef = prixTotal * 0.90f;
+                            prixDef = prixTotal * 0.95f;
                         }
                         else
                         {
@@ -419,7 +419,15 @@ namespace SQL_projet
                         }
                         else
                         {
-                            Console.WriteLine("Comme votre commande a été passé 3 jours avant la livraison, nous ne pouvons guarantir le stock");
+                            Console.WriteLine("Comme votre commande a été passé 3 jours avant la livraison, nous ne pouvons garantir le stock");
+                            foreach (string[] elem in panier) // alors on convertit tout les éléments en l'état VINV
+                            {
+                                elem[4] = "VINV";
+                                if (elem[0] == "-1")
+                                {
+                                    note += elem[1] + ";" + "VINV";
+                                }
+                            }
                         }
                         Console.WriteLine("magasin de rattachement (pour récupérer votre commande alternativement ):");
                         string magasin = Console.ReadLine();
@@ -594,7 +602,19 @@ namespace SQL_projet
                                 }
                                 Console.WriteLine("element : " + elem[1] + "; etat :" + elem[2]);
                             }
+                            List<string[]> données2 = fetcher.ExecuterCommandeSqlList("select idcommande, note from commande where idcommande not in (select distinct idcommande from composition)");
+                            foreach (string[] elem in données2)
+                            {
+                                if (elem[1]!= "")
+                                {
+                                    Console.WriteLine("Commande n°" + elem[0]);
+                                    string statut = elem[1].Split(';')[1]; //le statut 
+                                    string nom = elem[1].Split(";")[0]; // le nom de la demande
+                                    Console.WriteLine("Demande customisée : " + nom + "; etat : " + statut);
+                                } 
+                            }
                         }
+
                         else
                         {
                             Console.WriteLine("aucune donnée à afficher");
@@ -625,7 +645,19 @@ namespace SQL_projet
                                 }
                                 Console.WriteLine("element : " + elem[1] + "; etat :" + elem[2]);
                             }
-                            
+                            List<string[]> données2 = fetcher.ExecuterCommandeSqlList("select idcommande, note from commande where idcommande not in (select distinct idcommande from composition)");
+                            foreach (string[] elem in données2)
+                            {
+                                if (elem[1] != "")
+                                {
+                                    indices.Add(elem[0]);
+                                    Console.WriteLine("Commande n°" + elem[0]);
+                                    string statut = elem[1].Split(';')[1]; //le statut 
+                                    string nom = elem[1].Split(";")[0]; // le nom de la demande
+                                    Console.WriteLine("Demande customisée : " + nom + "; etat : " + statut);
+                                }
+                            }
+
                             Console.WriteLine();
                             Console.WriteLine("Quel commande voulez-vous modifier l'état d'une sous-commande ?");
                             string rep = Console.ReadLine();
