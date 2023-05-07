@@ -421,7 +421,9 @@ namespace SQL_projet
                         {
                             Console.WriteLine("Comme votre commande a été passé 3 jours avant la livraison, nous ne pouvons guarantir le stock");
                         }
-                        string commandeAjout = String.Format("insert into commande(idclient, prix, livraisonAdresse, message, livraisonDate, commandeDate, note) value ({0},{1},'{2}','{3}','{4}','{5}','{6}')", idClient, prixDef.ToString("N2", new CultureInfo("en-US")), lieuDeLivraison, message, livraison.ToString("yyyyMMdd"), DateTime.Now.ToString("yyyyMMdd"), note);
+                        Console.WriteLine("magasin de rattachement (pour récupérer votre commande alternativement ):");
+                        string magasin = Console.ReadLine();
+                        string commandeAjout = String.Format("insert into commande(idclient, prix, livraisonAdresse, message, livraisonDate, commandeDate, note,magasin) value ({0},{1},'{2}','{3}','{4}','{5}','{6}','{7}')", idClient, prixDef.ToString("N2", new CultureInfo("en-US")), lieuDeLivraison, message, livraison.ToString("yyyyMMdd"), DateTime.Now.ToString("yyyyMMdd"), note,magasin);
                         fetcher.ExecuterCommande(commandeAjout);
                         string idCommande = fetcher.ExecuterCommandeSqlList("select idCommande from commande where idclient = " + idClient + " order by idCommande desc")[0][0];
                         string commandeAjoutProduit = "";
