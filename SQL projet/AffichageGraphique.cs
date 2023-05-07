@@ -137,7 +137,7 @@ namespace SQL_projet
                 }
             }
         }
-        static void MenuClient(string courriel)
+        static void MenuClient(string courriel) //obsolete
         {
             bool quit = false;
             while (!quit)
@@ -519,7 +519,7 @@ namespace SQL_projet
                 Menu();
             }
         }
-        void ModuleClient() // à refaire, n'est pas la consigne
+        void ModuleClient() 
         {
             bool quit = false;
             while (!quit) 
@@ -542,10 +542,11 @@ namespace SQL_projet
                 }
                 Console.ReadLine();
             }
+            AdminMenu();
             
         }
         
-        void ModuleProduit() // vide
+        void ModuleProduit()
         {
             bool quit = false;
             while (!quit)
@@ -564,10 +565,11 @@ namespace SQL_projet
                     case 2: AjouterProduit(); break;
                     case 3: SupprimerClient(); break;
                     case 4: AjoutStock(); break;
-                    case 5: quit = true; break;
+                    case 5: quit = true; AdminMenu(); break;
                 }
-                Console.ReadLine();
+                Console.ReadKey();
             }
+            AdminMenu();
         }
         void ModuleCommande()
         {
@@ -719,8 +721,6 @@ namespace SQL_projet
                         break;
                     }
             }
-            Console.ReadLine();
-            Menu();
         }
         void ModuleStat()
         {
