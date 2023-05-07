@@ -412,7 +412,7 @@ namespace SQL_projet
                                 if (elem[0] != "-1") /* -1 correspond à une demande */ fetcher.ExecuterCommande("update produits set quantite = quantite - " + elem[2] + " where idproduit = " + elem[0]);
                                 else
                                 {
-                                    note += elem[1] + "; ";
+                                    note += elem[1] + ";" + elem[4];
                                     prixTotal += float.Parse(elem[3]);
                                 }
                             }
@@ -572,7 +572,7 @@ namespace SQL_projet
                     }
                 case 3:
                     {
-                        List<string[]> données = fetcher.ExecuterCommandeSqlList("select c.idcommande,nom,etat from commande join composition c on commande.idcommande = c.idcommande natural join produits;");
+                        List<string[]> données = fetcher.ExecuterCommandeSqlList("select c.idcommande,nom,etat,note from commande join composition c on commande.idcommande = c.idcommande natural join produits;");
                         if (données[0]!=null)
                         {
                             List<string> indices = new List<string>();
@@ -582,6 +582,13 @@ namespace SQL_projet
                                 {
                                     Console.WriteLine("Commande n°" + elem[0]);
                                     indices.Add(elem[0]);
+                                    if (elem[3] != "") // présence d'un bouquet customisé
+                                    {
+                                        string statut = elem[3].Split(';')[1]; //le statut 
+                                        string nom = elem[3].Split(";")[0]; // le nom de la demande
+                                        string indice = "-1";
+                                        Console.WriteLine("Demande customisée : " + nom + "; etat : " + statut);
+                                    }
                                 }
                                 Console.WriteLine("element : " + elem[1] + "; etat :" + elem[2]);
                             }
@@ -596,7 +603,7 @@ namespace SQL_projet
                     }
                 case 4:
                     {
-                        List<string[]> données = fetcher.ExecuterCommandeSqlList("select c.idcommande,nom,etat from commande join composition c on commande.idcommande = c.idcommande natural join produits;");
+                        List<string[]> données = fetcher.ExecuterCommandeSqlList("select c.idcommande,nom,etat,note from commande join composition c on commande.idcommande = c.idcommande natural join produits;");
                         if (données[0] != null)
                         {
                             List<string> indices = new List<string>();
@@ -606,20 +613,34 @@ namespace SQL_projet
                                 {
                                     Console.WriteLine("Commande n°" + elem[0]);
                                     indices.Add(elem[0]);
+                                    if (elem[3]!="") // présence d'un bouquet customisé
+                                    {
+                                        string statut = elem[3].Split(';')[1]; //le statut 
+                                        string nom = elem[3].Split(";")[0]; // le nom de la demande
+                                        string indice = "-1";
+                                        Console.WriteLine("Demande customisée : " + nom + "; etat : " + statut);
+                                    }
                                 }
                                 Console.WriteLine("element : " + elem[1] + "; etat :" + elem[2]);
                             }
+                            
                             Console.WriteLine();
                             Console.WriteLine("Quel commande voulez-vous modifier l'état d'une sous-commande ?");
                             string rep = Console.ReadLine();
                             if (indices.Find(x => rep == x) != null)
                             {
                                 fetcher.DisplayData("select idproduit,nom,etat from commande join composition c on commande.idcommande = c.idcommande natural join produits where c.idcommande = " + rep);
+                                string Custom = fetcher.ExecuterCommandeSqlString("select note from commande where idcommande =" + rep);
+                                if(Custom != "")
+                                {
+                                    Console.WriteLine("-1 : " + Custom);
+                                }
                                 Console.WriteLine("Quel sous commande ? :");
                                 string rep2 = Console.ReadLine();
                                 Console.WriteLine("Entrer le nouveau état :");
                                 string etat= Console.ReadLine();
-                                fetcher.ExecuterCommande(String.Format("update composition set etat = '{0}' where idcommande = {1} and idproduit = {2};",etat,rep,rep2));
+                                if (rep2 != "-1") fetcher.ExecuterCommande(String.Format("update composition set etat = '{0}' where idcommande = {1} and idproduit = {2};", etat, rep, rep2));
+                                else fetcher.ExecuterCommande(String.Format("update commande set note = '{0}' where idcommande = {1}", (Custom.Split(";")[0]+";"+etat),rep ));
                                 Console.WriteLine("Modification faite !");
                             }
                         }
