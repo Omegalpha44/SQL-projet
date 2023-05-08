@@ -1,6 +1,4 @@
 ﻿using MySql.Data.MySqlClient;
-using Org.BouncyCastle.Asn1;
-using System.Data;
 using System.Globalization;
 
 namespace SQL_projet
@@ -20,13 +18,13 @@ namespace SQL_projet
         {
             fetcher = new Sql_fetcher(connection);
         }
-        public void Affichage()
-        {
-            ExceptionManager(FirstLogin);
-            if (utilisateur == "admin admin \n") ExceptionManager(AdminMenu);
-            else ExceptionManager(Menu);
+        public void Affichage()// méthode principale permettant l'affichage
+        { 
+            ExceptionManager(FirstLogin); // pour le first login, on demande à l'utilisateur / admin de taper ses credentials
+            if (utilisateur == "admin admin \n") ExceptionManager(AdminMenu); // si admin --> connection admin
+            else ExceptionManager(Menu); // --> sinon connection client simple
 
-        }
+        } 
         void ExceptionManager(Ui func) // permet, si une erreur est détecté, de relancer la méthode
         {
             try { func(); }
@@ -58,7 +56,7 @@ namespace SQL_projet
             }
         }
         public void FirstLogin()
-            //pour la primo connection
+        //pour la primo connection
         {
             Console.Clear();
             Console.WriteLine("bienvenue chez Belle Fleur");
@@ -90,12 +88,12 @@ namespace SQL_projet
             }
         }
         public void AdminMenu()
-            //affichage de l'admin
+        //affichage de l'admin
         {
             Console.Clear();
             Console.WriteLine("Bonjour Admin");
             Console.WriteLine("===============");
-            Stock();
+            Stock(); // affiche si des produits sont en manque de stocks
             Console.WriteLine("===============");
             Console.WriteLine("Que voulez vous faire ?");
             Console.WriteLine("1. Module Client");
@@ -117,11 +115,11 @@ namespace SQL_projet
         //gestion des stocks
         {
             List<string[]> produits = fetcher.ExecuterCommandeSqlList("select nom,quantite,isAlreadyComposed from produits");
-            foreach (string[] elem in  produits)
+            foreach (string[] elem in produits)
             {
                 if (elem[2] == "1") // pour les bouquets
                 {
-                    if (int.Parse(elem[1])<30)
+                    if (int.Parse(elem[1]) < 30)
                     {
                         Console.WriteLine("produit : " + elem[0] + " est en quantité insuffisante");
                         Console.WriteLine("Quantité : " + elem[1]);
@@ -186,7 +184,7 @@ namespace SQL_projet
                 }
             }
 
-        }
+        } // à supprimer
         public void Menu()
         {
             List<string[]> panier = new List<string[]>();
@@ -205,7 +203,7 @@ namespace SQL_projet
             {
                 case 1: VoireCommande(); break;
                 case 2: RemplissagePanier(new List<string[]>()); break;
-                case 3: ModificationDonnées();break;
+                case 3: ModificationDonnées(); break;
                 case 4: break;
             }
 
@@ -369,7 +367,7 @@ namespace SQL_projet
                 case 3:
                     {
                         Console.WriteLine("Vous avez choisi de faire un bouquet sur note");
-                        Console.WriteLine("Veuillez indiquer la note (45 caractères maximum):");
+                        Console.WriteLine("Veuillez indiquer la note (200 caractères maximum & ne pas utiliser de ' ):");
                         string note = Console.ReadLine();
                         Console.WriteLine("Veuillez indiquer le prix dépensé :");
                         float prix = float.Parse(Console.ReadLine());
@@ -433,7 +431,7 @@ namespace SQL_projet
                         }
                         Console.WriteLine("magasin de rattachement (pour récupérer votre commande alternativement ):");
                         string magasin = Console.ReadLine();
-                        string commandeAjout = String.Format("insert into commande(idclient, prix, livraisonAdresse, message, livraisonDate, commandeDate, note,magasin) value ({0},{1},'{2}','{3}','{4}','{5}','{6}','{7}')", idClient, prixDef.ToString("N2", new CultureInfo("en-US")), lieuDeLivraison, message, livraison.ToString("yyyyMMdd"), DateTime.Now.ToString("yyyyMMdd"), note,magasin);
+                        string commandeAjout = String.Format("insert into commande(idclient, prix, livraisonAdresse, message, livraisonDate, commandeDate, note,magasin) value ({0},{1},'{2}','{3}','{4}','{5}','{6}','{7}')", idClient, prixDef.ToString("N2", new CultureInfo("en-US")), lieuDeLivraison, message, livraison.ToString("yyyyMMdd"), DateTime.Now.ToString("yyyyMMdd"), note, magasin);
                         fetcher.ExecuterCommande(commandeAjout);
                         string idCommande = fetcher.ExecuterCommandeSqlList("select idCommande from commande where idclient = " + idClient + " order by idCommande desc")[0][0];
                         string commandeAjoutProduit = "";
@@ -519,10 +517,10 @@ namespace SQL_projet
                 Menu();
             }
         }
-        void ModuleClient() 
+        void ModuleClient()
         {
             bool quit = false;
-            while (!quit) 
+            while (!quit)
             {
                 Console.Clear();
                 Console.WriteLine("Que voulez vous faire ?");
@@ -537,15 +535,15 @@ namespace SQL_projet
                     case 1: AffichageClients(); break;
                     case 2: AjouterClient(); break;
                     case 3: SupprimerClient(); break;
-                    case 4: ExportClientsMois();break;
+                    case 4: ExportClientsMois(); break;
                     case 5: quit = true; break;
                 }
                 Console.ReadLine();
             }
             AdminMenu();
-            
+
         }
-        
+
         void ModuleProduit()
         {
             bool quit = false;
@@ -596,7 +594,7 @@ namespace SQL_projet
                         Console.WriteLine("Veuillez indiquer le numéro du client en question : ");
                         string value = Console.ReadLine();
                         List<string[]> commandeClient = fetcher.ExecuterCommandeSqlList("select * from commande where idclient =" + value);
-                        if (commandeClient[0]!=null)
+                        if (commandeClient[0] != null)
                         {
                             fetcher.DisplayData("select * from commande where idclient =" + value);
                         }
@@ -611,7 +609,7 @@ namespace SQL_projet
                 case 3:
                     {
                         List<string[]> données = fetcher.ExecuterCommandeSqlList("select c.idcommande,nom,etat,note from commande join composition c on commande.idcommande = c.idcommande natural join produits;");
-                        if (données[0]!=null)
+                        if (données[0] != null)
                         {
                             List<string> indices = new List<string>();
                             foreach (string[] elem in données)
@@ -624,7 +622,6 @@ namespace SQL_projet
                                     {
                                         string statut = elem[3].Split(';')[1]; //le statut 
                                         string nom = elem[3].Split(";")[0]; // le nom de la demande
-                                        string indice = "-1";
                                         Console.WriteLine("Demande customisée : " + nom + "; etat : " + statut);
                                     }
                                 }
@@ -633,13 +630,13 @@ namespace SQL_projet
                             List<string[]> données2 = fetcher.ExecuterCommandeSqlList("select idcommande, note from commande where idcommande not in (select distinct idcommande from composition)");
                             foreach (string[] elem in données2)
                             {
-                                if (elem[1]!= "")
+                                if (elem[1] != "")
                                 {
                                     Console.WriteLine("Commande n°" + elem[0]);
                                     string statut = elem[1].Split(';')[1]; //le statut 
                                     string nom = elem[1].Split(";")[0]; // le nom de la demande
                                     Console.WriteLine("Demande customisée : " + nom + "; etat : " + statut);
-                                } 
+                                }
                             }
                         }
 
@@ -663,11 +660,10 @@ namespace SQL_projet
                                 {
                                     Console.WriteLine("Commande n°" + elem[0]);
                                     indices.Add(elem[0]);
-                                    if (elem[3]!="") // présence d'un bouquet customisé
+                                    if (elem[3] != "") // présence d'un bouquet customisé
                                     {
                                         string statut = elem[3].Split(';')[1]; //le statut 
                                         string nom = elem[3].Split(";")[0]; // le nom de la demande
-                                        string indice = "-1";
                                         Console.WriteLine("Demande customisée : " + nom + "; etat : " + statut);
                                     }
                                 }
@@ -693,16 +689,16 @@ namespace SQL_projet
                             {
                                 fetcher.DisplayData("select idproduit,nom,etat from commande join composition c on commande.idcommande = c.idcommande natural join produits where c.idcommande = " + rep);
                                 string Custom = fetcher.ExecuterCommandeSqlString("select note from commande where idcommande =" + rep);
-                                if(Custom != "")
+                                if (Custom != "")
                                 {
                                     Console.WriteLine("-1 : " + Custom);
                                 }
                                 Console.WriteLine("Quel sous commande ? :");
                                 string rep2 = Console.ReadLine();
                                 Console.WriteLine("Entrer le nouveau état :");
-                                string etat= Console.ReadLine();
+                                string etat = Console.ReadLine();
                                 if (rep2 != "-1") fetcher.ExecuterCommande(String.Format("update composition set etat = '{0}' where idcommande = {1} and idproduit = {2};", etat, rep, rep2));
-                                else fetcher.ExecuterCommande(String.Format("update commande set note = '{0}' where idcommande = {1}", (Custom.Split(";")[0]+";"+etat),rep ));
+                                else fetcher.ExecuterCommande(String.Format("update commande set note = '{0}' where idcommande = {1}", Custom.Split(";")[0] + ";" + etat, rep));
                                 Console.WriteLine("Modification faite !");
                             }
                         }
@@ -710,7 +706,7 @@ namespace SQL_projet
                         {
                             Console.WriteLine("aucune donnée à modifier");
                         }
-                        
+
                         Console.ReadKey();
                         ModuleCommande();
                         break;
@@ -734,7 +730,7 @@ namespace SQL_projet
             Console.WriteLine("5. Le magasin ayant généré le plus de chiffre d'affaire");
             Console.WriteLine("6. Revenir au menu principal");
             int r = GoodValue(1, 6);
-            switch(r)
+            switch (r)
             {
                 case 1:
                     {
@@ -757,7 +753,7 @@ namespace SQL_projet
                         Console.WriteLine("entrez les dates limites à la suite : (format dd/mm/yyyy)");
                         DateTime dateA = DateTime.Parse(Console.ReadLine());
                         DateTime dateB = DateTime.Parse(Console.ReadLine());
-                        string[] meilleur_client = fetcher.ExecuterCommandeSqlList(String.Format("select nom,prenom,sum(prix) from client join (select prix,idclient from commande where commandeDate between '{0}' and '{1}') c on client.idclient = c.idclient  group by c.idclient order by sum(prix) desc limit 1",dateA.ToString("yyyyMMdd"), dateB.ToString("yyyyMMdd")))[0];
+                        string[] meilleur_client = fetcher.ExecuterCommandeSqlList(String.Format("select nom,prenom,sum(prix) from client join (select prix,idclient from commande where commandeDate between '{0}' and '{1}') c on client.idclient = c.idclient  group by c.idclient order by sum(prix) desc limit 1", dateA.ToString("yyyyMMdd"), dateB.ToString("yyyyMMdd")))[0];
                         if (meilleur_client != null)
                         {
                             Console.WriteLine("Le meilleur client est " + meilleur_client[0] + " " + meilleur_client[1]);
@@ -792,10 +788,10 @@ namespace SQL_projet
                         break;
                     }
             }
-        } 
+        }
         #region vieux code, non utilisé
-        void AjouterClient()
-        {
+        void AjouterClient() // permet d'ajouter un client
+        { 
             Console.Clear();
             Console.WriteLine("Vous allez vous inscrire à belle fleure. Nous reccueillerons les données indiquées uniquement dans un but d'inscription");
             Console.WriteLine("Veuillez appuyer sur un bouton pour indiquer votre accord :");
@@ -896,7 +892,7 @@ namespace SQL_projet
             }
 
 
-        }
+        } // aucune référence
         static string StatutClient(string courriel)
         {
             string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
@@ -924,8 +920,8 @@ namespace SQL_projet
             else if (count < 5) { statut = "Bronze"; }
             else { statut = "Or"; }
             return statut;
-        }
-        string StatutClient()
+        } //obsolete
+        string StatutClient() // permet de connaitre le statut du client 
         {
             string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
             int count;
@@ -969,8 +965,8 @@ namespace SQL_projet
                 case 3: break;
             }
             return choix;
-        }
-        static string ChoixCommandeStandard()
+        } // obsolete
+        static string ChoixCommandeStandard() // obsolete
         {
             Console.Clear();
             Console.WriteLine("Quel bouquet souhaitez-vous");
@@ -1003,7 +999,7 @@ namespace SQL_projet
 
             fetcher.DisplayData($"SELECT * FROM client WHERE idclient = {idClient}");
         }
-        void ModificationDonnées() 
+        void ModificationDonnées() // permet de modifier les paramètres d'un client
         {
             Console.Clear();
             AffichageClient();
@@ -1026,6 +1022,7 @@ namespace SQL_projet
                 case 4: ModificationClient("motDePasse"); break;
                 case 5: ModificationClient("facturationAdresse"); break;
                 case 6: ModificationClient("creditCard"); break;
+                case 7: Menu(); break;
             }
             Console.ReadLine();
         }
@@ -1054,13 +1051,13 @@ namespace SQL_projet
             fetcher.ExecuterCommande(query);
         }
 
-        void SupprimerClient() 
+        void SupprimerClient()
         {
             Console.WriteLine("Veuillez rentrer le courriel du client que vous souhaitez supprimer");
-            string mail=Console.ReadLine();
+            string mail = Console.ReadLine();
             fetcher.ExecuterCommande("DELETE FROM client WHERE courriel = '" + mail + "';");
         }
-        void ExportClientsMois() 
+        void ExportClientsMois()
         {
             fetcher.Export2Xml("test1.xml", "SELECT c.*, COUNT(co.idcommande) AS nombre_commandes FROM client c LEFT JOIN commande co ON c.idclient = co.idclient WHERE c.idclient != 1 AND YEAR(co.commandeDate) = YEAR(CURDATE()) AND MONTH(co.commandeDate) = MONTH(CURDATE()) GROUP BY c.idclient, c.nom, c.prenom, c.courriel, c.telephone, c.creditCard HAVING COUNT(co.idcommande) != 0;");
         }
@@ -1071,7 +1068,7 @@ namespace SQL_projet
             string nom = Console.ReadLine();
             Console.Write("Quantité : ");
             int quantite = int.Parse(Console.ReadLine());
-            Console.Write("Prix individuel : ");
+            Console.Write("Prix individuel (format u,d): ");
             float prixIndiv = float.Parse(Console.ReadLine());
             Console.Write("Date A : ");
             int dateA = int.Parse(Console.ReadLine());
@@ -1083,10 +1080,9 @@ namespace SQL_projet
             string composition = Console.ReadLine();
             Console.Write("Catégorie : ");
             string categorie = Console.ReadLine();
-
-            string query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie VALUES ('{nom}', {quantite}, {prixIndiv}, {dateA}, {dateB}, {isAlreadyComposed}, '{composition}', '{categorie}');";
-
+            string query = $"INSERT INTO produits(nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv.ToString("N2", new CultureInfo("en-US"))}, {dateA}, {dateB}, {isAlreadyComposed}, '{composition}', '{categorie}');";
             fetcher.ExecuterCommande(query);
+            Console.WriteLine("produit ajouté !");
         }
         void ProduitsMagasin()
         {
@@ -1107,16 +1103,16 @@ namespace SQL_projet
                 }
                 Console.ReadLine();
             }
-            
+
         }
-        void AjoutStock() 
+        void AjoutStock()
         {
             Console.Clear();
             Console.WriteLine("De quel type de produit voulez-vous augmenter le stock ?");
             Console.WriteLine("1. Afficher les fleurs individuelles");
             Console.WriteLine("2. Ajouter les bouquets");
             Console.WriteLine("3. Quitter");
-            int idProduit=0;
+            int idProduit = 0;
             int r = GoodValue(1, 3);
             switch (r)
             {
@@ -1124,7 +1120,7 @@ namespace SQL_projet
                 case 2: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=1;"); break;
                 case 3: break;
             }
-            if (r == 1) 
+            if (r == 1)
             {
                 List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=0");
                 while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))

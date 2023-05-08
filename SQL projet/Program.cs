@@ -5,8 +5,8 @@
         static void Main(string[] args)
         {
             string login = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root"; //login pour se connecter à la base de donnée
-            AffichageGraphique affichage = new AffichageGraphique(login);
-            affichage.Affichage();
+            AffichageGraphique affichage = new AffichageGraphique(login); //pour se connecter au serveur
+            affichage.Affichage(); //mainloop 
         }
     }
 }

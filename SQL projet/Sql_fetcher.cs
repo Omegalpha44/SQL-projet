@@ -17,8 +17,8 @@ namespace SQL_projet
         {
             sqlConnection = null;
         }
-        public void DisplayData(string commande) //affiche les résultats d'une recherche 
-        {
+        public void DisplayData(string commande)
+        {//affiche les résultats d'une recherche. Utilise la structure que j'ai faite lors des td (avec des try)
             sqlConnection.Open();
             MySqlCommand command = sqlConnection.CreateCommand();
             command.CommandText = commande;
@@ -68,7 +68,6 @@ namespace SQL_projet
             }
             sqlConnection.Close();
             Console.WriteLine();
-            Console.WriteLine();
         }
 
 
@@ -92,7 +91,7 @@ namespace SQL_projet
 
         }
         public List<string[]> ExecuterCommandeSqlList(string commandText)
-        {
+        { //renvoie une liste contenant les éléments lignes par ligne renvoyé par la commande sql
             sqlConnection.Open();
             MySqlCommand command = new MySqlCommand(commandText, sqlConnection);
             MySqlDataReader reader = command.ExecuteReader();
@@ -111,15 +110,15 @@ namespace SQL_projet
             return res;
         }
         public void ExecuterCommande(string commandText)
-        {
+        { //execute une commande sql sur le serveur sans rien renvoyer
             sqlConnection.Open();
             MySqlCommand command = new MySqlCommand(commandText, sqlConnection);
             MySqlDataReader reader = command.ExecuteReader();
             reader.Read();
             sqlConnection.Close();
         }
-        public void Export2Xml(string folder,string commande)
-        {
+        public void Export2Xml(string folder, string commande)
+        { //exporter une database sql en fichier .xml
             sqlConnection.Open();
             //permet d'exporter des données de SQL à XML
             MySqlCommand command = new MySqlCommand(commande, sqlConnection);
