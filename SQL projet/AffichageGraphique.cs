@@ -100,7 +100,7 @@ namespace SQL_projet
             Console.WriteLine("2. Module Produit");
             Console.WriteLine("3. Module Commande");
             Console.WriteLine("4. Module Statistiques");
-            Console.WriteLine("5. Quiter");
+            Console.WriteLine("5. Quitter");
             int r = GoodValue(1, 5);
             switch (r)
             {
@@ -167,7 +167,7 @@ namespace SQL_projet
                 Console.WriteLine("2. Voir mon statut de fidélité");
                 Console.WriteLine("3. Voir le catalogue du magasin");
                 Console.WriteLine("4. Passer commande");
-                Console.WriteLine("5. Quiter");
+                Console.WriteLine("5. Quitter");
                 int r = GoodValue(1, 5);
                 string statut = StatutClient(courriel);
                 switch (r)
@@ -829,7 +829,6 @@ namespace SQL_projet
                 {
                     Console.WriteLine("Téléphone : ");
                     int telephone = Convert.ToInt32(Console.ReadLine());
-                    Console.WriteLine(telephone);
                     Console.WriteLine("Carte de crédit");
                     string cb = Console.ReadLine();
                     MySqlConnection connection = new MySqlConnection(connectionString);
@@ -955,7 +954,7 @@ namespace SQL_projet
             Console.WriteLine("Quel type de commande souhaitez-vous ?");
             Console.WriteLine("1. Commande standard");
             Console.WriteLine("2. Commande personnalisée");
-            Console.WriteLine("3. Quiter");
+            Console.WriteLine("3. Quitter");
             int r = GoodValue(1, 3);
             string choix = "";
             switch (r)
@@ -975,7 +974,7 @@ namespace SQL_projet
             Console.WriteLine("3. L’Exotique, un arrangement floral avec ginger, oiseaux du paradis, roses et genet parfait pour toute occasion pour un prix de 40 €");
             Console.WriteLine("4. Maman, un arrangement  floral avec gerbera, roses blanches, lys et alstroméria pour la Fête des mères pour un prix de 80 €");
             Console.WriteLine("5. Vive la mariée, un arrangement  floral avec lys et orchidées parfait pour un mariage pour un prix de 120 €");
-            Console.WriteLine("6. Quiter");
+            Console.WriteLine("6. Quitter");
             string bouquet = "";
             int r = GoodValue(1, 6);
             switch (r)
@@ -990,11 +989,11 @@ namespace SQL_projet
             return bouquet;
         }
         #endregion
-        void AffichageClients()
+        void AffichageClients() // pour l'admin
         {
             fetcher.DisplayData("SELECT c.nom, c.prenom, c.courriel, COUNT(co.idcommande) AS nombre_commandes FROM client c LEFT JOIN commande co ON c.idclient = co.idclient WHERE c.idclient!=1 GROUP BY c.idclient;");
         }
-        void AffichageClient()
+        void AffichageClient() // pour le client
         {
 
             fetcher.DisplayData($"SELECT * FROM client WHERE idclient = {idClient}");
@@ -1010,7 +1009,7 @@ namespace SQL_projet
             Console.WriteLine("4. Mot de passe");
             Console.WriteLine("5. Adresse de facturation");
             Console.WriteLine("6. Carte de crédit");
-            Console.WriteLine("7. Quiter");
+            Console.WriteLine("7. Quitter");
             int r = GoodValue(1, 7);
             switch (r)
             {
@@ -1080,21 +1079,11 @@ namespace SQL_projet
             DateTime dateA = DateTime.Parse(Console.ReadLine());
             Console.Write("Date B : ");
             int dateB = int.Parse(Console.ReadLine());
-            Console.Write("Déjà composé (0 ou 1) : ");
-            int isAlreadyComposed = int.Parse(Console.ReadLine());
-            Console.Write("Composition : ");
-            string composition = Console.ReadLine();
-            Console.Write("Catégorie : ");
-            string categorie = Console.ReadLine();
-            string query = $"INSERT INTO produits(nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv.ToString("N2", new CultureInfo("en-US"))}, {dateA}, {dateB}, {isAlreadyComposed}, '{composition}', '{categorie}');";
-            fetcher.ExecuterCommande(query);
-            Console.WriteLine("produit ajouté !");
-            DateTime dateB = DateTime.Parse(Console.ReadLine());
             string query;
             switch (r)
             {
                 case 1:
-                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {0}, NULL, NULL);";
+                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv.ToString("N2", new CultureInfo("en-US"))}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {0}, NULL, NULL);";
                     fetcher.ExecuterCommande(query);
                     break;
                 case 2:
@@ -1102,7 +1091,7 @@ namespace SQL_projet
                     string composition = Console.ReadLine();
                     Console.Write("Catégorie : ");
                     string categorie = Console.ReadLine();
-                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {1}, '{composition}', '{categorie}');";
+                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv.ToString("N2", new CultureInfo("en-US"))}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {1}, '{composition}', '{categorie}');";
                     fetcher.ExecuterCommande(query);
                     break;
                 case 3: break;
