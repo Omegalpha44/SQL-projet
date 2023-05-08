@@ -552,7 +552,7 @@ namespace SQL_projet
                 {
                     case 1: ProduitsMagasin(); break;
                     case 2: AjouterProduit(); break;
-                    case 3: SupprimerClient(); break;
+                    case 3: SupprimerProduit(); break;
                     case 4: AjoutStock(); break;
                     case 5: quit = true; break;
                 }
@@ -1011,6 +1011,12 @@ namespace SQL_projet
         }
         void AjouterProduit()
         {
+            Console.Clear();
+            Console.WriteLine("Quel type de produit voulez-vous ajouter ?");
+            Console.WriteLine("1. Fleurs individuelles");
+            Console.WriteLine("2. Bouquets");
+            Console.WriteLine("3. Quitter");
+            int r = GoodValue(1, 3);
             Console.WriteLine("Entrez les informations pour le nouveau produit :");
             Console.Write("Nom : ");
             string nom = Console.ReadLine();
@@ -1019,19 +1025,61 @@ namespace SQL_projet
             Console.Write("Prix individuel : ");
             float prixIndiv = float.Parse(Console.ReadLine());
             Console.Write("Date A : ");
-            int dateA = int.Parse(Console.ReadLine());
+            DateTime dateA = DateTime.Parse(Console.ReadLine());
             Console.Write("Date B : ");
-            int dateB = int.Parse(Console.ReadLine());
-            Console.Write("Déjà composé (0 ou 1) : ");
-            int isAlreadyComposed = int.Parse(Console.ReadLine());
-            Console.Write("Composition : ");
-            string composition = Console.ReadLine();
-            Console.Write("Catégorie : ");
-            string categorie = Console.ReadLine();
-
-            string query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie VALUES ('{nom}', {quantite}, {prixIndiv}, {dateA}, {dateB}, {isAlreadyComposed}, '{composition}', '{categorie}');";
-
-            fetcher.ExecuterCommande(query);
+            DateTime dateB = DateTime.Parse(Console.ReadLine());
+            string query;
+            switch (r)
+            {
+                case 1:
+                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {0}, NULL, NULL);";
+                    fetcher.ExecuterCommande(query);
+                    break;
+                case 2:
+                    Console.Write("Composition : ");
+                    string composition = Console.ReadLine();
+                    Console.Write("Catégorie : ");
+                    string categorie = Console.ReadLine();
+                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {1}, '{composition}', '{categorie}');";
+                    fetcher.ExecuterCommande(query);
+                    break;
+                case 3: break;
+            }
+        }
+        void SupprimerProduit() 
+        {
+            Console.Clear();
+            Console.WriteLine("Quel type de produit voulez-vous supprimer ?");
+            Console.WriteLine("1. Fleurs individuelles");
+            Console.WriteLine("2. Bouquets");
+            Console.WriteLine("3. Quitter");
+            int idProduit = 0;
+            int r = GoodValue(1, 3);
+            switch (r)
+            {
+                case 1: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=0;"); break;
+                case 2: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=1;"); break;
+                case 3: break;
+            }
+            if (r == 1)
+            {
+                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=0");
+                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
+                {
+                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
+                    idProduit = Convert.ToInt32(Console.ReadLine());
+                }
+            }
+            else if (r == 2)
+            {
+                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=1");
+                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
+                {
+                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
+                    idProduit = Convert.ToInt32(Console.ReadLine());
+                }
+            }
+            fetcher.ExecuterCommande($"DELETE FROM produits WHERE idproduit ={idProduit} ");
         }
         void ProduitsMagasin()
         {
