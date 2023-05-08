@@ -6,10 +6,13 @@ namespace SQL_projet
     public delegate void Ui();
     internal class AffichageGraphique
     {
+        #region attributs
         public Sql_fetcher fetcher;
         string utilisateur; //permet de nommer le client (nom + prenom)
         int idClient; //permet d'identifier le client
         string status;
+        #endregion
+        #region constructeur 
         public AffichageGraphique()
         {
             fetcher = null;
@@ -18,13 +21,15 @@ namespace SQL_projet
         {
             fetcher = new Sql_fetcher(connection);
         }
+        #endregion
+        #region gestion des connections
         public void Affichage()// méthode principale permettant l'affichage
-        { 
+        {
             ExceptionManager(FirstLogin); // pour le first login, on demande à l'utilisateur / admin de taper ses credentials
             if (utilisateur == "admin admin \n") ExceptionManager(AdminMenu); // si admin --> connection admin
             else ExceptionManager(Menu); // --> sinon connection client simple
 
-        } 
+        }
         void ExceptionManager(Ui func) // permet, si une erreur est détecté, de relancer la méthode
         {
             try { func(); }
@@ -55,8 +60,7 @@ namespace SQL_projet
                 return GoodValue(a, b);
             }
         }
-        public void FirstLogin()
-        //pour la primo connection
+        public void FirstLogin() //pour la primo connection
         {
             Console.Clear();
             Console.WriteLine("bienvenue chez Belle Fleur");
@@ -87,8 +91,11 @@ namespace SQL_projet
                 }
             }
         }
-        public void AdminMenu()
-        //affichage de l'admin
+
+
+        #endregion
+        #region gestion de l'interface utilisateur
+        public void AdminMenu() //affichage de l'admin
         {
             Console.Clear();
             Console.WriteLine("Bonjour Admin");
@@ -111,80 +118,6 @@ namespace SQL_projet
                 case 5: break;
             }
         }
-        public void Stock()
-        //gestion des stocks
-        {
-            List<string[]> produits = fetcher.ExecuterCommandeSqlList("select nom,quantite,isAlreadyComposed from produits");
-            foreach (string[] elem in produits)
-            {
-                if (elem[2] == "1") // pour les bouquets
-                {
-                    if (int.Parse(elem[1]) < 30)
-                    {
-                        Console.WriteLine("produit : " + elem[0] + " est en quantité insuffisante");
-                        Console.WriteLine("Quantité : " + elem[1]);
-                    }
-                }
-                else // pour les fleurs
-                {
-                    if (int.Parse(elem[1]) < 100)
-                    {
-                        Console.WriteLine("produit : " + elem[0] + " est en quantité insuffisante");
-                        Console.WriteLine("Quantité : " + elem[1]);
-                    }
-                }
-            }
-        }
-        static void MenuClient(string courriel) //obsolete
-        {
-            bool quit = false;
-            while (!quit)
-            {
-                Console.Clear();
-                string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
-                using (MySqlConnection connection = new MySqlConnection(connectionString))
-                {
-                    connection.Open();
-                    string query = "SELECT nom, prenom FROM client WHERE courriel = @courriel";
-                    using (MySqlCommand command = new MySqlCommand(query, connection))
-                    {
-                        command.Parameters.AddWithValue("@courriel", courriel);
-
-                        using (MySqlDataReader reader = command.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                string nom = reader.GetString("nom");
-                                string prenom = reader.GetString("prenom");
-
-                                Console.WriteLine($"Bonjour {nom.ToUpper()} {prenom}");
-                            }
-                        }
-                    }
-                }
-                Console.WriteLine("Que voulez vous faire ?");
-                Console.WriteLine("1. Modifier mes informations");
-                Console.WriteLine("2. Voir mon statut de fidélité");
-                Console.WriteLine("3. Voir le catalogue du magasin");
-                Console.WriteLine("4. Passer commande");
-                Console.WriteLine("5. Quitter");
-                int r = GoodValue(1, 5);
-                string statut = StatutClient(courriel);
-                switch (r)
-                {
-                    case 1: break;
-                    case 2:
-                        if (statut == " ") { Console.WriteLine("Vous n'avez pas de statut de fidélité actuellement"); }
-                        else { Console.WriteLine("Votre statut de fidélité est " + statut); }
-                        Console.ReadLine();
-                        break;
-                    case 3: break;
-                    case 4: ChoixProduits(); break;
-                    case 5: quit = true; break;
-                }
-            }
-
-        } // à supprimer
         public void Menu()
         {
             List<string[]> panier = new List<string[]>();
@@ -208,7 +141,7 @@ namespace SQL_projet
             }
 
 
-        }
+        } // l'affichage des utilisateurs lambda
         public void RemplissagePanier(List<string[]> panier, bool isFlowerFilling = false)
         {
             Console.Clear();
@@ -458,8 +391,7 @@ namespace SQL_projet
                         break;
                     }
             }
-        }
-
+        } // le remplissage du panier du client
         public void VoireCommande()
         {
             Console.Clear();
@@ -478,7 +410,13 @@ namespace SQL_projet
                     }
                     Console.WriteLine(String.Format("------------ {0}: quantite : {1} ; prix : {2} ; composition : {3}", elem[6], elem[7], elem[8], elem[9]));
                     if (elem[5] != "") Console.WriteLine("------------ Et un bouquet customisé !");
-
+                }
+                List<string[]> onlyCustomCommande = fetcher.ExecuterCommandeSqlList("select idcommande,prix,commandeDate,livraisonAdresse,livraisonDate,note,message from commande where idcommande not in (select idcommande from commande natural join composition) and idclient = " + idClient + " order by idcommande");
+                foreach (string[] elem in onlyCustomCommande)
+                {
+                    Console.WriteLine(String.Format("Commande numéro {0} : fait le {1}. \n Livraison prévu / effectué le {2} à {3} \n Prix total : {4} \n Note de bouquet custom : {5} \n Message : {6} \n Items :", elem[0], elem[2], elem[4], elem[3], elem[1], elem[5], elem[6]));
+                    Console.WriteLine("------------ Et un bouquet customisé !");
+                    indices.Add(elem[0]);
                 }
 
                 Console.WriteLine("Que voulez vous faire ? :");
@@ -516,59 +454,9 @@ namespace SQL_projet
                 Console.ReadKey();
                 Menu();
             }
-        }
-        void ModuleClient()
-        {
-            bool quit = false;
-            while (!quit)
-            {
-                Console.Clear();
-                Console.WriteLine("Que voulez vous faire ?");
-                Console.WriteLine("1. Afficher les clients");
-                Console.WriteLine("2. Ajouter un client");
-                Console.WriteLine("3. Supprimer un client");
-                Console.WriteLine("4. Exporter les informations des clients qui ont fait plusieurs commandes ce mois");
-                Console.WriteLine("5. Quitter");
-                int r = GoodValue(1, 5);
-                switch (r)
-                {
-                    case 1: AffichageClients(); break;
-                    case 2: AjouterClient(); break;
-                    case 3: SupprimerClient(); break;
-                    case 4: ExportClientsMois(); break;
-                    case 5: quit = true; break;
-                }
-                Console.ReadLine();
-            }
-            AdminMenu();
-
-        }
-
-        void ModuleProduit()
-        {
-            bool quit = false;
-            while (!quit)
-            {
-                Console.Clear();
-                Console.WriteLine("Que voulez vous faire ?");
-                Console.WriteLine("1. Afficher les produits");
-                Console.WriteLine("2. Ajouter un produit");
-                Console.WriteLine("3. Supprimer un produit");
-                Console.WriteLine("4. Ajouter du stock pour un produit");
-                Console.WriteLine("5. Quitter");
-                int r = GoodValue(1, 5);
-                switch (r)
-                {
-                    case 1: ProduitsMagasin(); break;
-                    case 2: AjouterProduit(); break;
-                    case 3: SupprimerProduit(); break;
-                    case 4: AjoutStock(); break;
-                    case 5: quit = true; AdminMenu(); break;
-                }
-                Console.ReadKey();
-            }
-            AdminMenu();
-        }
+        } // pour voir les commandes que le client a déjà fait
+        #endregion
+        #region gestion des commandes
         void ModuleCommande()
         {
             Console.Clear();
@@ -718,6 +606,196 @@ namespace SQL_projet
                     }
             }
         }
+        #endregion
+        #region gestion des clients
+        void ModuleClient()
+        {
+            bool quit = false;
+            while (!quit)
+            {
+                Console.Clear();
+                Console.WriteLine("Que voulez vous faire ?");
+                Console.WriteLine("1. Afficher les clients");
+                Console.WriteLine("2. Ajouter un client");
+                Console.WriteLine("3. Supprimer un client");
+                Console.WriteLine("4. Exporter les informations des clients qui ont fait plusieurs commandes ce mois");
+                Console.WriteLine("5. Quitter");
+                int r = GoodValue(1, 5);
+                switch (r)
+                {
+                    case 1: AffichageClients(); break;
+                    case 2: AjouterClient(); break;
+                    case 3: SupprimerClient(); break;
+                    case 4: ExportClientsMois(); break;
+                    case 5: quit = true; break;
+                }
+                Console.ReadLine();
+            }
+            AdminMenu();
+
+        } // menu pour traiter des clients
+        void AjouterClient() // permet d'ajouter un client
+        {
+            Console.Clear();
+            Console.WriteLine("Vous allez vous inscrire à belle fleure. Nous reccueillerons les données indiquées uniquement dans un but d'inscription");
+            Console.WriteLine("Veuillez appuyer sur un bouton pour indiquer votre accord :");
+            Console.ReadKey();
+            Console.WriteLine("Prénom : ");
+            string prenom = Console.ReadLine();
+            Console.WriteLine("Nom : ");
+            string nom = Console.ReadLine();
+            Console.WriteLine("Adresse : ");
+            string adresse = Console.ReadLine();
+            Console.WriteLine("Mail : ");
+            string courriel = Console.ReadLine();
+            Console.WriteLine("Mot de passe");
+            string mdp = Console.ReadLine();
+
+            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+            int exist = 1;
+            while (exist == 1)
+            {
+                using (MySqlConnection connection1 = new MySqlConnection(connectionString))
+                {
+                    connection1.Open();
+
+                    string query = "SELECT EXISTS (SELECT 1 FROM client WHERE courriel = @courriel)";
+                    using (MySqlCommand command1 = new MySqlCommand(query, connection1))
+                    {
+                        command1.Parameters.AddWithValue("@courriel", courriel);
+
+                        exist = Convert.ToInt32(command1.ExecuteScalar());
+                    }
+
+                    connection1.Close();
+                }
+                if (exist != 1)
+                {
+                    Console.WriteLine("Téléphone : ");
+                    int telephone = Convert.ToInt32(Console.ReadLine());
+                    Console.WriteLine("Carte de crédit");
+                    string cb = Console.ReadLine();
+                    MySqlConnection connection = new MySqlConnection(connectionString);
+                    connection.Open();
+                    MySqlCommand command = connection.CreateCommand();
+                    command.CommandText = "INSERT INTO `Fleurs`.`client` (`nom`, `prenom`,`telephone`,`courriel`, `motDePasse`, `facturationAdresse`,`creditCard`) VALUES ('" + nom + "', '" + prenom + "','" + telephone + "' ,'" + courriel + "','" + mdp + "', '" + adresse + "',    '" + cb + "');";
+
+                    MySqlDataReader reader;
+                    reader = command.ExecuteReader();
+                    connection.Close();
+
+                }
+                else
+                {
+                    Console.WriteLine("Ce mail est déjà associé à un autre client. Veuillez saisir un autre mail et saisir de nouveau le mot de passe");
+                    Console.WriteLine("Mail : ");
+                    courriel = Console.ReadLine();
+                    Console.WriteLine("Mot de passe");
+                    mdp = Console.ReadLine();
+                }
+            }
+            FirstLogin();
+        }
+        void AffichageClients() // pour l'admin
+        {
+            fetcher.DisplayData("SELECT c.nom, c.prenom, c.courriel, COUNT(co.idcommande) AS nombre_commandes FROM client c LEFT JOIN commande co ON c.idclient = co.idclient WHERE c.idclient!=1 GROUP BY c.idclient;");
+        }
+        void AffichageClient() // pour le client
+        {
+
+            fetcher.DisplayData($"SELECT * FROM client WHERE idclient = {idClient}");
+        }
+        void ModificationDonnées() // permet de modifier les paramètres d'un client
+        {
+            Console.Clear();
+            AffichageClient();
+            Console.WriteLine("Que voulez vous modifier ?");
+            Console.WriteLine("1. Nom");
+            Console.WriteLine("2. Telephone");
+            Console.WriteLine("3. Courriel");
+            Console.WriteLine("4. Mot de passe");
+            Console.WriteLine("5. Adresse de facturation");
+            Console.WriteLine("6. Carte de crédit");
+            Console.WriteLine("7. Quitter");
+            int r = GoodValue(1, 7);
+            switch (r)
+            {
+                case 1: ModificationClient("nom"); break;
+                case 2:
+                    ModificationClient("telephone");
+                    break;
+                case 3: ModificationClient("courriel"); break;
+                case 4: ModificationClient("motDePasse"); break;
+                case 5: ModificationClient("facturationAdresse"); break;
+                case 6: ModificationClient("creditCard"); break;
+                case 7: Menu(); break;
+            }
+            Console.ReadLine();
+        }
+        void ModificationClient(string info)
+        {
+            Console.WriteLine("Veuillez rentrer la nouvelle donnée");
+            int valeurInt = 0;
+            string valeur = null;
+            if (info == "telephone" || info == "creditCard")
+            {
+                valeurInt = Convert.ToInt32(Console.ReadLine());
+            }
+            else
+            {
+                valeur = Console.ReadLine();
+            }
+            string query;
+            if (valeur != null)
+            {
+                query = $"UPDATE client SET {info} = '{valeur}' WHERE idclient = {idClient}";
+            }
+            else
+            {
+                query = $"UPDATE client SET {info} = {valeurInt} WHERE idclient = {idClient}";
+            }
+            fetcher.ExecuterCommande(query);
+        }
+        void SupprimerClient()
+        {
+            Console.WriteLine("Veuillez rentrer le courriel du client que vous souhaitez supprimer");
+            string mail = Console.ReadLine();
+            fetcher.ExecuterCommande("DELETE FROM client WHERE courriel = '" + mail + "';");
+        }
+        void ExportClientsMois()
+        {
+            fetcher.Export2Xml("test1.xml", "SELECT c.*, COUNT(co.idcommande) AS nombre_commandes FROM client c LEFT JOIN commande co ON c.idclient = co.idclient WHERE c.idclient != 1 AND YEAR(co.commandeDate) = YEAR(CURDATE()) AND MONTH(co.commandeDate) = MONTH(CURDATE()) GROUP BY c.idclient, c.nom, c.prenom, c.courriel, c.telephone, c.creditCard HAVING COUNT(co.idcommande) != 0;");
+        }
+        string StatutClient() // permet de connaitre le statut du client 
+        {
+            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+            int count;
+            DateTime commandeDate = DateTime.Now;
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT COUNT(*) FROM commande INNER JOIN client ON commande.idclient = client.idclient WHERE client.idclient = @client AND MONTH(commande.commandeDate) = @month";
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@client", idClient);
+                    command.Parameters.AddWithValue("@month", commandeDate.Month);
+                    count = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                connection.Close();
+            }
+            string statut;
+            if (count < 1)
+            {
+                statut = " ";
+            }
+            else if (count < 5) { statut = "Bronze"; }
+            else { statut = "Or"; }
+            return statut;
+        }
+        #endregion
+        #region module statistiques
         void ModuleStat()
         {
             Console.Clear();
@@ -789,69 +867,245 @@ namespace SQL_projet
                     }
             }
         }
-        #region vieux code, non utilisé
-        void AjouterClient() // permet d'ajouter un client
-        { 
-            Console.Clear();
-            Console.WriteLine("Vous allez vous inscrire à belle fleure. Nous reccueillerons les données indiquées uniquement dans un but d'inscription");
-            Console.WriteLine("Veuillez appuyer sur un bouton pour indiquer votre accord :");
-            Console.ReadKey();
-            Console.WriteLine("Prénom : ");
-            string prenom = Console.ReadLine();
-            Console.WriteLine("Nom : ");
-            string nom = Console.ReadLine();
-            Console.WriteLine("Adresse : ");
-            string adresse = Console.ReadLine();
-            Console.WriteLine("Mail : ");
-            string courriel = Console.ReadLine();
-            Console.WriteLine("Mot de passe");
-            string mdp = Console.ReadLine();
-
-            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
-            int exist = 1;
-            while (exist == 1)
+        #endregion
+        #region gestion du stock
+        void ModuleProduit()
+        {
+            bool quit = false;
+            while (!quit)
             {
-                using (MySqlConnection connection1 = new MySqlConnection(connectionString))
+                Console.Clear();
+                Console.WriteLine("Que voulez vous faire ?");
+                Console.WriteLine("1. Afficher les produits");
+                Console.WriteLine("2. Ajouter un produit");
+                Console.WriteLine("3. Supprimer un produit");
+                Console.WriteLine("4. Ajouter du stock pour un produit");
+                Console.WriteLine("5. Quitter");
+                int r = GoodValue(1, 5);
+                switch (r)
                 {
-                    connection1.Open();
-
-                    string query = "SELECT EXISTS (SELECT 1 FROM client WHERE courriel = @courriel)";
-                    using (MySqlCommand command1 = new MySqlCommand(query, connection1))
-                    {
-                        command1.Parameters.AddWithValue("@courriel", courriel);
-
-                        exist = Convert.ToInt32(command1.ExecuteScalar());
-                    }
-
-                    connection1.Close();
+                    case 1: ProduitsMagasin(); break;
+                    case 2: AjouterProduit(); break;
+                    case 3: SupprimerProduit(); break;
+                    case 4: AjoutStock(); break;
+                    case 5: quit = true; AdminMenu(); break;
                 }
-                if (exist != 1)
+                Console.ReadKey();
+            }
+            AdminMenu();
+        } // gestion des produits
+        void AjoutStock()
+        {
+            Console.Clear();
+            Console.WriteLine("De quel type de produit voulez-vous augmenter le stock ?");
+            Console.WriteLine("1. Afficher les fleurs individuelles");
+            Console.WriteLine("2. Ajouter les bouquets");
+            Console.WriteLine("3. Quitter");
+            int idProduit = 0;
+            int r = GoodValue(1, 3);
+            switch (r)
+            {
+                case 1: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=0;"); break;
+                case 2: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=1;"); break;
+                case 3: break;
+            }
+            if (r == 1)
+            {
+                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=0");
+                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
                 {
-                    Console.WriteLine("Téléphone : ");
-                    int telephone = Convert.ToInt32(Console.ReadLine());
-                    Console.WriteLine("Carte de crédit");
-                    string cb = Console.ReadLine();
-                    MySqlConnection connection = new MySqlConnection(connectionString);
-                    connection.Open();
-                    MySqlCommand command = connection.CreateCommand();
-                    command.CommandText = "INSERT INTO `Fleurs`.`client` (`nom`, `prenom`,`telephone`,`courriel`, `motDePasse`, `facturationAdresse`,`creditCard`) VALUES ('" + nom + "', '" + prenom + "','" + telephone + "' ,'" + courriel + "','" + mdp + "', '" + adresse + "',    '" + cb + "');";
-
-                    MySqlDataReader reader;
-                    reader = command.ExecuteReader();
-                    connection.Close();
-
-                }
-                else
-                {
-                    Console.WriteLine("Ce mail est déjà associé à un autre client. Veuillez saisir un autre mail et saisir de nouveau le mot de passe");
-                    Console.WriteLine("Mail : ");
-                    courriel = Console.ReadLine();
-                    Console.WriteLine("Mot de passe");
-                    mdp = Console.ReadLine();
+                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
+                    idProduit = Convert.ToInt32(Console.ReadLine());
                 }
             }
-            FirstLogin();
+            else if (r == 2)
+            {
+                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=1");
+                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
+                {
+                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
+                    idProduit = Convert.ToInt32(Console.ReadLine());
+                }
+            }
+            Console.WriteLine("Combien de produits voulez-vous ajouter ?");
+            int quantiteAjoutee = Convert.ToInt32(Console.ReadLine());
+
+            string query = $"UPDATE produits SET quantite = quantite + {quantiteAjoutee} WHERE idproduit = {idProduit}";
+
+            fetcher.ExecuterCommande(query);
+
+            Console.WriteLine($"{quantiteAjoutee} produits ont été ajoutés au produit n°{idProduit}");
+            Console.ReadLine();
+        } // ajouter du stock 
+        void AjouterProduit()
+        {
+            Console.Clear();
+            Console.WriteLine("Quel type de produit voulez-vous ajouter ?");
+            Console.WriteLine("1. Fleurs individuelles");
+            Console.WriteLine("2. Bouquets");
+            Console.WriteLine("3. Quitter");
+            int r = GoodValue(1, 3);
+            Console.WriteLine("Entrez les informations pour le nouveau produit :");
+            Console.Write("Nom : ");
+            string nom = Console.ReadLine();
+            Console.Write("Quantité : ");
+            int quantite = int.Parse(Console.ReadLine());
+            Console.Write("Prix individuel (format u,d): ");
+            float prixIndiv = float.Parse(Console.ReadLine());
+            Console.Write("Date A : ");
+            DateTime dateA = DateTime.Parse(Console.ReadLine());
+            Console.Write("Date B : ");
+            int dateB = int.Parse(Console.ReadLine());
+            string query;
+            switch (r)
+            {
+                case 1:
+                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv.ToString("N2", new CultureInfo("en-US"))}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {0}, NULL, NULL);";
+                    fetcher.ExecuterCommande(query);
+                    break;
+                case 2:
+                    Console.Write("Composition : ");
+                    string composition = Console.ReadLine();
+                    Console.Write("Catégorie : ");
+                    string categorie = Console.ReadLine();
+                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv.ToString("N2", new CultureInfo("en-US"))}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {1}, '{composition}', '{categorie}');";
+                    fetcher.ExecuterCommande(query);
+                    break;
+                case 3: break;
+            }
+        } // ajouter un nouveau produit
+        void SupprimerProduit()
+        {
+            Console.Clear();
+            Console.WriteLine("Quel type de produit voulez-vous supprimer ?");
+            Console.WriteLine("1. Fleurs individuelles");
+            Console.WriteLine("2. Bouquets");
+            Console.WriteLine("3. Quitter");
+            int idProduit = 0;
+            int r = GoodValue(1, 3);
+            switch (r)
+            {
+                case 1: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=0;"); break;
+                case 2: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=1;"); break;
+                case 3: break;
+            }
+            if (r == 1)
+            {
+                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=0");
+                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
+                {
+                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
+                    idProduit = Convert.ToInt32(Console.ReadLine());
+                }
+            }
+            else if (r == 2)
+            {
+                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=1");
+                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
+                {
+                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
+                    idProduit = Convert.ToInt32(Console.ReadLine());
+                }
+            }
+            fetcher.ExecuterCommande($"DELETE FROM produits WHERE idproduit ={idProduit} ");
+        } // supprimer un ou des produits
+        void ProduitsMagasin()
+        {
+            bool quit = false;
+            while (!quit)
+            {
+                Console.Clear();
+                Console.WriteLine("Que voulez vous faire ?");
+                Console.WriteLine("1. Afficher les fleurs individuelles");
+                Console.WriteLine("2. Ajouter les bouquets");
+                Console.WriteLine("3. Quitter");
+                int r = GoodValue(1, 3);
+                switch (r)
+                {
+                    case 1: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=0;"); break;
+                    case 2: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=1;"); break;
+                    case 3: quit = true; break;
+                }
+                Console.ReadLine();
+            }
+
+        } // affichage des produits présent en stock en fonction du type de produit testé
+        public void Stock() //gestion des stocks
+        {
+            List<string[]> produits = fetcher.ExecuterCommandeSqlList("select nom,quantite,isAlreadyComposed from produits");
+            foreach (string[] elem in produits)
+            {
+                if (elem[2] == "1") // pour les bouquets
+                {
+                    if (int.Parse(elem[1]) < 30)
+                    {
+                        Console.WriteLine("produit : " + elem[0] + " est en quantité insuffisante");
+                        Console.WriteLine("Quantité : " + elem[1]);
+                    }
+                }
+                else // pour les fleurs
+                {
+                    if (int.Parse(elem[1]) < 100)
+                    {
+                        Console.WriteLine("produit : " + elem[0] + " est en quantité insuffisante");
+                        Console.WriteLine("Quantité : " + elem[1]);
+                    }
+                }
+            }
         }
+        #endregion
+        #region ancien code, laissé en commentaire à des fins d'analyse
+
+        static void MenuClient(string courriel) //obsolete
+        {
+            bool quit = false;
+            while (!quit)
+            {
+                Console.Clear();
+                string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "SELECT nom, prenom FROM client WHERE courriel = @courriel";
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@courriel", courriel);
+
+                        using (MySqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                string nom = reader.GetString("nom");
+                                string prenom = reader.GetString("prenom");
+
+                                Console.WriteLine($"Bonjour {nom.ToUpper()} {prenom}");
+                            }
+                        }
+                    }
+                }
+                Console.WriteLine("Que voulez vous faire ?");
+                Console.WriteLine("1. Modifier mes informations");
+                Console.WriteLine("2. Voir mon statut de fidélité");
+                Console.WriteLine("3. Voir le catalogue du magasin");
+                Console.WriteLine("4. Passer commande");
+                Console.WriteLine("5. Quitter");
+                int r = GoodValue(1, 5);
+                string statut = StatutClient(courriel);
+                switch (r)
+                {
+                    case 1: break;
+                    case 2:
+                        if (statut == " ") { Console.WriteLine("Vous n'avez pas de statut de fidélité actuellement"); }
+                        else { Console.WriteLine("Votre statut de fidélité est " + statut); }
+                        Console.ReadLine();
+                        break;
+                    case 3: break;
+                    case 4: ChoixProduits(); break;
+                    case 5: quit = true; break;
+                }
+            }
+
+        } // à supprimer
         static void ConnectionClient()
         {
             Console.Clear();
@@ -920,34 +1174,6 @@ namespace SQL_projet
             else { statut = "Or"; }
             return statut;
         } //obsolete
-        string StatutClient() // permet de connaitre le statut du client 
-        {
-            string connectionString = "SERVER=localhost;PORT=3306;DATABASE=Fleurs;UID=root;PASSWORD=root;";
-            int count;
-            DateTime commandeDate = DateTime.Now;
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
-            {
-                connection.Open();
-
-                string query = "SELECT COUNT(*) FROM commande INNER JOIN client ON commande.idclient = client.idclient WHERE client.idclient = @client AND MONTH(commande.commandeDate) = @month";
-                using (MySqlCommand command = new MySqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@client", idClient);
-                    command.Parameters.AddWithValue("@month", commandeDate.Month);
-                    count = Convert.ToInt32(command.ExecuteScalar());
-                }
-
-                connection.Close();
-            }
-            string statut;
-            if (count < 1)
-            {
-                statut = " ";
-            }
-            else if (count < 5) { statut = "Bronze"; }
-            else { statut = "Or"; }
-            return statut;
-        }
         static string ChoixProduits()
         {
             Console.Clear();
@@ -988,213 +1214,7 @@ namespace SQL_projet
             }
             return bouquet;
         }
+
         #endregion
-        void AffichageClients() // pour l'admin
-        {
-            fetcher.DisplayData("SELECT c.nom, c.prenom, c.courriel, COUNT(co.idcommande) AS nombre_commandes FROM client c LEFT JOIN commande co ON c.idclient = co.idclient WHERE c.idclient!=1 GROUP BY c.idclient;");
-        }
-        void AffichageClient() // pour le client
-        {
-
-            fetcher.DisplayData($"SELECT * FROM client WHERE idclient = {idClient}");
-        }
-        void ModificationDonnées() // permet de modifier les paramètres d'un client
-        {
-            Console.Clear();
-            AffichageClient();
-            Console.WriteLine("Que voulez vous modifier ?");
-            Console.WriteLine("1. Nom");
-            Console.WriteLine("2. Telephone");
-            Console.WriteLine("3. Courriel");
-            Console.WriteLine("4. Mot de passe");
-            Console.WriteLine("5. Adresse de facturation");
-            Console.WriteLine("6. Carte de crédit");
-            Console.WriteLine("7. Quitter");
-            int r = GoodValue(1, 7);
-            switch (r)
-            {
-                case 1: ModificationClient("nom"); break;
-                case 2:
-                    ModificationClient("telephone");
-                    break;
-                case 3: ModificationClient("courriel"); break;
-                case 4: ModificationClient("motDePasse"); break;
-                case 5: ModificationClient("facturationAdresse"); break;
-                case 6: ModificationClient("creditCard"); break;
-                case 7: Menu(); break;
-            }
-            Console.ReadLine();
-        }
-        void ModificationClient(string info)
-        {
-            Console.WriteLine("Veuillez rentrer la nouvelle donnée");
-            int valeurInt = 0;
-            string valeur = null;
-            if (info == "telephone" || info == "creditCard")
-            {
-                valeurInt = Convert.ToInt32(Console.ReadLine());
-            }
-            else
-            {
-                valeur = Console.ReadLine();
-            }
-            string query;
-            if (valeur != null)
-            {
-                query = $"UPDATE client SET {info} = '{valeur}' WHERE idclient = {idClient}";
-            }
-            else
-            {
-                query = $"UPDATE client SET {info} = {valeurInt} WHERE idclient = {idClient}";
-            }
-            fetcher.ExecuterCommande(query);
-        }
-
-        void SupprimerClient()
-        {
-            Console.WriteLine("Veuillez rentrer le courriel du client que vous souhaitez supprimer");
-            string mail = Console.ReadLine();
-            fetcher.ExecuterCommande("DELETE FROM client WHERE courriel = '" + mail + "';");
-        }
-        void ExportClientsMois()
-        {
-            fetcher.Export2Xml("test1.xml", "SELECT c.*, COUNT(co.idcommande) AS nombre_commandes FROM client c LEFT JOIN commande co ON c.idclient = co.idclient WHERE c.idclient != 1 AND YEAR(co.commandeDate) = YEAR(CURDATE()) AND MONTH(co.commandeDate) = MONTH(CURDATE()) GROUP BY c.idclient, c.nom, c.prenom, c.courriel, c.telephone, c.creditCard HAVING COUNT(co.idcommande) != 0;");
-        }
-        void AjouterProduit()
-        {
-            Console.Clear();
-            Console.WriteLine("Quel type de produit voulez-vous ajouter ?");
-            Console.WriteLine("1. Fleurs individuelles");
-            Console.WriteLine("2. Bouquets");
-            Console.WriteLine("3. Quitter");
-            int r = GoodValue(1, 3);
-            Console.WriteLine("Entrez les informations pour le nouveau produit :");
-            Console.Write("Nom : ");
-            string nom = Console.ReadLine();
-            Console.Write("Quantité : ");
-            int quantite = int.Parse(Console.ReadLine());
-            Console.Write("Prix individuel (format u,d): ");
-            float prixIndiv = float.Parse(Console.ReadLine());
-            Console.Write("Date A : ");
-            DateTime dateA = DateTime.Parse(Console.ReadLine());
-            Console.Write("Date B : ");
-            int dateB = int.Parse(Console.ReadLine());
-            string query;
-            switch (r)
-            {
-                case 1:
-                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv.ToString("N2", new CultureInfo("en-US"))}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {0}, NULL, NULL);";
-                    fetcher.ExecuterCommande(query);
-                    break;
-                case 2:
-                    Console.Write("Composition : ");
-                    string composition = Console.ReadLine();
-                    Console.Write("Catégorie : ");
-                    string categorie = Console.ReadLine();
-                    query = $"INSERT INTO produits (nom, quantite, prixIndiv, dateA, dateB, isAlreadyComposed, composition, catégorie) VALUES ('{nom}', {quantite}, {prixIndiv.ToString("N2", new CultureInfo("en-US"))}, {dateA.ToString("yyyyMMdd")}, {dateB.ToString("yyyyMMdd")}, {1}, '{composition}', '{categorie}');";
-                    fetcher.ExecuterCommande(query);
-                    break;
-                case 3: break;
-            }
-        }
-        void SupprimerProduit() 
-        {
-            Console.Clear();
-            Console.WriteLine("Quel type de produit voulez-vous supprimer ?");
-            Console.WriteLine("1. Fleurs individuelles");
-            Console.WriteLine("2. Bouquets");
-            Console.WriteLine("3. Quitter");
-            int idProduit = 0;
-            int r = GoodValue(1, 3);
-            switch (r)
-            {
-                case 1: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=0;"); break;
-                case 2: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=1;"); break;
-                case 3: break;
-            }
-            if (r == 1)
-            {
-                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=0");
-                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
-                {
-                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
-                    idProduit = Convert.ToInt32(Console.ReadLine());
-                }
-            }
-            else if (r == 2)
-            {
-                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=1");
-                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
-                {
-                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
-                    idProduit = Convert.ToInt32(Console.ReadLine());
-                }
-            }
-            fetcher.ExecuterCommande($"DELETE FROM produits WHERE idproduit ={idProduit} ");
-        }
-        void ProduitsMagasin()
-        {
-            bool quit = false;
-            while (!quit)
-            {
-                Console.Clear();
-                Console.WriteLine("Que voulez vous faire ?");
-                Console.WriteLine("1. Afficher les fleurs individuelles");
-                Console.WriteLine("2. Ajouter les bouquets");
-                Console.WriteLine("3. Quitter");
-                int r = GoodValue(1, 3);
-                switch (r)
-                {
-                    case 1: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=0;"); break;
-                    case 2: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=1;"); break;
-                    case 3: quit = true; break;
-                }
-                Console.ReadLine();
-            }
-
-        }
-        void AjoutStock()
-        {
-            Console.Clear();
-            Console.WriteLine("De quel type de produit voulez-vous augmenter le stock ?");
-            Console.WriteLine("1. Afficher les fleurs individuelles");
-            Console.WriteLine("2. Ajouter les bouquets");
-            Console.WriteLine("3. Quitter");
-            int idProduit = 0;
-            int r = GoodValue(1, 3);
-            switch (r)
-            {
-                case 1: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=0;"); break;
-                case 2: fetcher.DisplayData("SELECT idproduit,nom,prixIndiv,quantite FROM produits WHERE isAlreadyComposed=1;"); break;
-                case 3: break;
-            }
-            if (r == 1)
-            {
-                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=0");
-                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
-                {
-                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
-                    idProduit = Convert.ToInt32(Console.ReadLine());
-                }
-            }
-            else if (r == 2)
-            {
-                List<string[]> listeIdProduits = fetcher.ExecuterCommandeSqlList("SELECT idproduit FROM produits WHERE isAlreadyComposed=1");
-                while (!listeIdProduits.SelectMany(array => array).ToList().Contains(idProduit.ToString()))
-                {
-                    Console.WriteLine("Veuillez rentrer un idProduit valide :");
-                    idProduit = Convert.ToInt32(Console.ReadLine());
-                }
-            }
-            Console.WriteLine("Combien de produits voulez-vous ajouter ?");
-            int quantiteAjoutee = Convert.ToInt32(Console.ReadLine());
-
-            string query = $"UPDATE produits SET quantite = quantite + {quantiteAjoutee} WHERE idproduit = {idProduit}";
-
-            fetcher.ExecuterCommande(query);
-
-            Console.WriteLine($"{quantiteAjoutee} produits ont été ajoutés au produit n°{idProduit}");
-            Console.ReadLine();
-        }
     }
 }

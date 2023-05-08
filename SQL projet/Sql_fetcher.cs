@@ -8,7 +8,6 @@ namespace SQL_projet
     {
         public MySqlConnection sqlConnection;
 
-
         public Sql_fetcher(string connection)
         {
             sqlConnection = new MySqlConnection(connection);
@@ -69,11 +68,8 @@ namespace SQL_projet
             sqlConnection.Close();
             Console.WriteLine();
         }
-
-
         public string ExecuterCommandeSqlString(string commandText)
-        //permet d'exécuter des commandes sql et récupérer le contenu dans une string
-        {
+        {//permet d'exécuter des commandes sql et récupérer le contenu dans une string
             sqlConnection.Open();
             MySqlCommand command = new MySqlCommand(commandText, sqlConnection);
             MySqlDataReader reader = command.ExecuteReader();
